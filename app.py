@@ -157,8 +157,10 @@ elif menu == "Análisis":
             fig.add_trace(go.Bar(
                 x=df_pivot.index,
                 y=df_pivot[categoria],
-                name=categoria
+                name=categoria,
+                hovertemplate=f"{categoria}: %{{y}}<extra></extra>"
             ))
+            
 
         fig.update_layout(
             barmode='stack',
