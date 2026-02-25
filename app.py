@@ -45,15 +45,65 @@ if menu == "Agregar gasto":
 # --------------------------
 # RESUMEN CATEGORÍA
 # --------------------------
+
 elif menu == "Resumen por categoría":
 
     st.header("Resumen por categoría")
-    resumen = resumen_por_categoria()
 
-    if resumen.empty:
-        st.info("No hay datos aún.")
-    else:
-        st.dataframe(resumen)
+    col1, col2 = st.columns(2)
+
+    with col1:
+        anio = st.selectbox("Año", [2024, 2025, 2026], index=1)
+        mes = st.selectbox(
+            "Mes",
+            list(range(1, 13)),
+            format_func=lambda x: [
+                "Enero","Febrero","Marzo","Abril","Mayo","Junio",
+                "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
+            ][x-1]
+        )
+
+    resumen_cat = resumen_por_categoria(mes, anio)
+    resumen_mes = resumen_mensual(mes, anio)
+
+    col_tabla, col_resumen = st.columns([2,1])
+
+    with col_tabla:
+        if resumen_cat.empty:
+            st.info("No hay datos para este mes.")
+        else:
+            st.subheader("Gasto por categoría")
+            st.dataframe(resumen_cat)
+
+            st.subheader("Distribución porcentual")
+            st.plotly_chart({
+                "data": [{
+                    "labels": resumen_cat["categoria"],
+                    "values": resumen_cat["total"],
+                    "type": "pie"
+                }]
+            })
+
+    with col_resumen:
+        st.subheader("Total del mes")
+
+        if resumen_mes.iloc[0]["total_mes"] is not None:
+            total = resumen_mes.iloc[0]["total_mes"]
+            st.metric("Total gastado", f"${total:,.0f}")
+        else:
+            st.metric("Total gastado", "$0")
+
+
+
+#elif menu == "Resumen por categoría":
+#
+#    st.header("Resumen por categoría")
+#    resumen = resumen_por_categoria()
+#
+#    if resumen.empty:
+#        st.info("No hay datos aún.")
+#    else:
+#        st.dataframe(resumen)
 
 
 # --------------------------

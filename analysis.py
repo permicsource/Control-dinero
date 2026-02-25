@@ -1,5 +1,7 @@
 import pandas as pd
 from database import conectar
+import psycopg2
+from database import conectar
 
 #Extrae los datos de la base de datos y los convierte en un df.
 def obtener_dataframe():
@@ -14,22 +16,56 @@ def obtener_dataframe():
     return df
 
 #Agrupa los gastos por categoría y suma el monto total de cada una
-def resumen_por_categoria():
-    df = obtener_dataframe()
 
-    if df.empty:
-        return df
+def resumen_por_categoria(mes, anio):
+    conn = conectar()
 
-    return df.groupby("categoria")["monto"].sum().sort_values(ascending=False)
+    query = """
+        SELECT categoria, SUM(monto) as total
+        FROM gastos
+        WHERE EXTRACT(MONTH FROM fecha) = %s
+          AND EXTRACT(YEAR FROM fecha) = %s
+        GROUP BY categoria
+        ORDER BY total DESC;
+    """
+
+    df = pd.read_sql(query, conn, params=(mes, anio))
+    conn.close()
+    return df
+
+
+#def resumen_por_categoria():
+#    df = obtener_dataframe()
+#
+#    if df.empty:
+#        return df
+#
+#    return df.groupby("categoria")["monto"].sum().sort_values(ascending=False)
 
 #Agrupa los gastos por mes y suma el monto total de cada uno
-def resumen_mensual():
-    df = obtener_dataframe()
 
-    if df.empty:
-        return df
+def resumen_mensual(mes, anio):
+    conn = conectar()
 
-    return df.groupby("mes")["monto"].sum().sort_index()
+    query = """
+        SELECT SUM(monto) as total_mes
+        FROM gastos
+        WHERE EXTRACT(MONTH FROM fecha) = %s
+          AND EXTRACT(YEAR FROM fecha) = %s;
+    """
+
+    df = pd.read_sql(query, conn, params=(mes, anio))
+    conn.close()
+    return df
+
+
+#def resumen_mensual():
+#    df = obtener_dataframe()
+#
+#    if df.empty:
+#        return df
+#
+#    return df.groupby("mes")["monto"].sum().sort_index()
 
 #Exporta los datos en excel.
 def exportar_a_excel(nombre_archivo="reporte_finanzas.xlsx"):
