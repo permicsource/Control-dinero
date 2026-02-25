@@ -6,6 +6,14 @@ from models import Gasto
 from database import crear_tabla, insertar_gasto
 from analysis import resumen_por_categoria, resumen_mensual, evolucion_mensual, exportar_a_excel
 
+#Config pag
+
+st.set_page_config(
+    page_title="Money Saver",
+    page_icon="assets/icon.png",
+    layout="centered"
+)
+
 #Fecha Hoy
 hoy = datetime.date.today()
 mes_actual = hoy.month
