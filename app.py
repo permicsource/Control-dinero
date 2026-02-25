@@ -4,7 +4,7 @@ import calendar
 from datetime import date
 from models import Gasto
 from database import crear_tabla, insertar_gasto
-from analysis import resumen_por_categoria, resumen_mensual, exportar_a_excel
+from analysis import resumen_por_categoria, resumen_mensual, evolucion_mensual, exportar_a_excel
 
 #Fecha Hoy
 hoy = datetime.date.today()
@@ -27,7 +27,7 @@ st.title("Money Saver")
 
 menu = st.sidebar.selectbox(
     "Seleccione una opción",
-    ["Agregar gasto", "Resumen por categoría", "Exportar a Excel"]
+    ["Agregar gasto", "Resumen por categoría", "Análisis", "Exportar a Excel"]
 )
 
 # --------------------------
@@ -107,6 +107,33 @@ elif menu == "Resumen por categoría":
             st.metric("Total gastado", "$0")
 
 
+
+# --------------------------
+# ANALISIS
+# --------------------------
+
+elif menu == "Análisis":
+
+    st.header("Evolución mensual de gastos")
+
+    anio = st.selectbox("Año", [2026], index=0)
+
+    df_evolucion = evolucion_mensual(anio)
+
+    if df_evolucion.empty:
+        st.info("No hay datos para este año.")
+    else:
+        # Pivotear datos para stacked bar
+        df_pivot = df_evolucion.pivot(
+            index="mes",
+            columns="categoria",
+            values="total"
+        ).fillna(0)
+
+        # Ordenar meses
+        df_pivot = df_pivot.sort_index()
+
+        st.bar_chart(df_pivot)
 
 # --------------------------
 # EXPORTAR

@@ -51,14 +51,6 @@ def resumen_mensual(mes, anio):
     return df
 
 
-#def resumen_mensual():
-#    df = obtener_dataframe()
-#
-#    if df.empty:
-#        return df
-#
-#    return df.groupby("mes")["monto"].sum().sort_index()
-
 #Exporta los datos en excel.
 def exportar_a_excel(nombre_archivo="reporte_finanzas.xlsx"):
     df = obtener_dataframe()
@@ -77,3 +69,23 @@ def exportar_a_excel(nombre_archivo="reporte_finanzas.xlsx"):
         resumen_mes.to_excel(writer, sheet_name="Resumen_Mensual")
 
     print(f"Archivo exportado como {nombre_archivo}")
+
+    #Función para gráfica de barras stacked.
+
+def evolucion_mensual(anio):
+    conn = conectar()
+
+    query = """
+        SELECT 
+            EXTRACT(MONTH FROM fecha) AS mes,
+            categoria,
+            SUM(monto) AS total
+        FROM gastos
+        WHERE EXTRACT(YEAR FROM fecha) = %s
+        GROUP BY mes, categoria
+        ORDER BY mes;
+    """
+
+    df = pd.read_sql(query, conn, params=(anio,))
+    conn.close()
+    return df
