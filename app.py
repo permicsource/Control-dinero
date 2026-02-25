@@ -1,13 +1,18 @@
 import streamlit as st
 import datetime
+import calendar
 from datetime import date
 from models import Gasto
 from database import crear_tabla, insertar_gasto
 from analysis import resumen_por_categoria, resumen_mensual, exportar_a_excel
 
 #Fecha Hoy
-hoy = datetime.date.today()
-mes_actual = hoy.month  # número 1–12
+hoy = datetime.date.today()     
+mes_actual = hoy.month
+anio_actual = hoy.year
+
+# Lista nombres de meses
+meses = list(calendar.month_name)[1:]  # elimina posición 0 vacía
 
 # Asegurar que la tabla exista
 if "db_initialized" not in st.session_state:
@@ -58,11 +63,14 @@ elif menu == "Resumen por categoría":
 
     with col1:
         anio = st.selectbox("Año", [2026], index=0)
-        mes = st.selectbox(
+        mes_nombre = st.selectbox(
             "Mes",
-            list(range(1, 13)),
-            index=mes_actual - 1  # porque el índice empieza en 0
+            meses,
+            index=mes_actual - 1
         )
+
+        # Convertir nombre a número
+        mes = meses.index(mes_nombre) + 1
 
     resumen_cat = resumen_por_categoria(mes, anio)
     resumen_mes = resumen_mensual(mes, anio)
