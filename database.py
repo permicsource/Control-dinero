@@ -11,7 +11,7 @@ DB_PATH = "/tmp/control_dinero.db"
 
 #En lugar de escribir la ruta cada vez, se define como una constante.
 def conectar():
-    return sqlite3.connect(DB_PATH)
+    return sqlite3.connect(DB_PATH, check_same_thread=False)
 
 #Función para crear la tabla de gastos si no existe. Se ejecuta al iniciar la aplicación.
 def crear_tabla():

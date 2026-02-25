@@ -6,7 +6,9 @@ from analysis import resumen_por_categoria, resumen_mensual, exportar_a_excel
 
 
 # Asegurar que la tabla exista
-crear_tabla()
+if "db_initialized" not in st.session_state:
+    crear_tabla()
+    st.session_state.db_initialized = True
 
 st.title("Control de Finanzas Personales")
 
