@@ -1,9 +1,13 @@
 import streamlit as st
+import datetime
 from datetime import date
 from models import Gasto
 from database import crear_tabla, insertar_gasto
 from analysis import resumen_por_categoria, resumen_mensual, exportar_a_excel
 
+#Fecha Hoy
+hoy = datetime.date.today()
+mes_actual = hoy.month  # número 1–12
 
 # Asegurar que la tabla exista
 if "db_initialized" not in st.session_state:
@@ -57,10 +61,7 @@ elif menu == "Resumen por categoría":
         mes = st.selectbox(
             "Mes",
             list(range(1, 13)),
-            format_func=lambda x: [
-                "Enero","Febrero","Marzo","Abril","Mayo","Junio",
-                "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
-            ][x-1]
+            index=mes_actual - 1  # porque el índice empieza en 0
         )
 
     resumen_cat = resumen_por_categoria(mes, anio)
