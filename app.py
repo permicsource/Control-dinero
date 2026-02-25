@@ -10,7 +10,7 @@ if "db_initialized" not in st.session_state:
     crear_tabla()
     st.session_state.db_initialized = True
 
-st.title("Control de Finanzas Personales")
+st.title("Money Saver")
 
 menu = st.sidebar.selectbox(
     "Seleccione una opción",
