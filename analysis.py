@@ -72,6 +72,7 @@ def exportar_a_excel(nombre_archivo="reporte_finanzas.xlsx"):
 
     #Función para gráfica de barras stacked.
 
+
 def evolucion_mensual(anio):
     conn = conectar()
 
@@ -89,3 +90,4 @@ def evolucion_mensual(anio):
     df = pd.read_sql(query, conn, params=(anio,))
     conn.close()
     return df
+
