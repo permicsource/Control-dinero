@@ -34,15 +34,7 @@ def resumen_por_categoria(mes, anio):
     return df
 
 
-#def resumen_por_categoria():
-#    df = obtener_dataframe()
-#
-#    if df.empty:
-#        return df
-#
-#    return df.groupby("categoria")["monto"].sum().sort_values(ascending=False)
-
-#Agrupa los gastos por mes y suma el monto total de cada uno
+#Función para obtener el resumen mensual total. Suma todos los gastos del mes seleccionado.
 
 def resumen_mensual(mes, anio):
     conn = conectar()
