@@ -7,12 +7,16 @@ from database import crear_tabla, insertar_gasto
 from analysis import resumen_por_categoria, resumen_mensual, exportar_a_excel
 
 #Fecha Hoy
-hoy = datetime.date.today()     
+hoy = datetime.date.today()
 mes_actual = hoy.month
 anio_actual = hoy.year
 
 # Lista nombres de meses
-meses = list(calendar.month_name)[1:]  # elimina posición 0 vacía
+meses = [
+    "Enero", "Febrero", "Marzo", "Abril",
+    "Mayo", "Junio", "Julio", "Agosto",
+    "Septiembre", "Octubre", "Noviembre", "Diciembre"
+]
 
 # Asegurar que la tabla exista
 if "db_initialized" not in st.session_state:
