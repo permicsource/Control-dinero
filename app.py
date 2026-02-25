@@ -133,7 +133,34 @@ elif menu == "Análisis":
         # Ordenar meses
         df_pivot = df_pivot.sort_index()
 
-        st.bar_chart(df_pivot)
+        meses = [
+            "Enero", "Febrero", "Marzo", "Abril",
+            "Mayo", "Junio", "Julio", "Agosto",
+            "Septiembre", "Octubre", "Noviembre", "Diciembre"
+        ]
+        df_pivot.index = [meses[int(m)-1] for m in df_pivot.index]
+
+
+        import plotly.graph_objects as go
+
+        fig = go.Figure()
+
+        for categoria in df_pivot.columns:
+            fig.add_trace(go.Bar(
+                x=df_pivot.index,
+                y=df_pivot[categoria],
+                name=categoria
+            ))
+
+        fig.update_layout(
+            barmode='stack',
+            xaxis_title="Mes",
+            yaxis_title="Total gastado",
+            legend_title="Categoría",
+            height=500
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
 
 # --------------------------
 # EXPORTAR
