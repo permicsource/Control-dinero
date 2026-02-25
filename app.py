@@ -35,7 +35,7 @@ st.title("Money Saver")
 
 menu = st.sidebar.selectbox(
     "Seleccione una opción",
-    ["Agregar gasto", "Resumen por categoría", "Análisis", "Exportar a Excel"]
+    ["Agregar gasto", "Resumen mensual", "Análisis", "Exportar a Excel"]
 )
 
 # --------------------------
@@ -67,9 +67,9 @@ if menu == "Agregar gasto":
 # RESUMEN CATEGORÍA
 # --------------------------
 
-elif menu == "Resumen por categoría":
+elif menu == "Resumen mensual":
 
-    st.header("Resumen por categoría")
+    st.header("Resumen mensual")
 
     col1, col2 = st.columns(2)
 
