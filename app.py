@@ -53,7 +53,7 @@ elif menu == "Resumen por categoría":
     col1, col2 = st.columns(2)
 
     with col1:
-        anio = st.selectbox("Año", [2024, 2025, 2026], index=1)
+        anio = st.selectbox("Año", [2026], index=1)
         mes = st.selectbox(
             "Mes",
             list(range(1, 13)),

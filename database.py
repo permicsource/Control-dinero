@@ -43,12 +43,12 @@ def insertar_gasto(gasto: Gasto):
     conn.commit()
     conn.close()
 
-def obtener_todos_los_gastos():
-    conn = conectar()
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT fecha, categoria, descripcion, monto FROM gastos")
-    datos = cursor.fetchall()
-
-    conn.close()
-    return datos
+#def obtener_todos_los_gastos():
+#    conn = conectar()
+#    cursor = conn.cursor()
+#
+#    cursor.execute("SELECT fecha, categoria, descripcion, monto FROM gastos")
+#    datos = cursor.fetchall()
+#
+#    conn.close()
+#    return datos
