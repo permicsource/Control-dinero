@@ -7,7 +7,7 @@
 import sqlite3
 from models import Gasto
 
-DB_PATH = "data/gastos.db"
+DB_PATH = "/tmp/control_dinero.db"
 
 #En lugar de escribir la ruta cada vez, se define como una constante.
 def conectar():
