@@ -9,7 +9,10 @@ import streamlit as st
 from models import Gasto
 
 def conectar():
-    return psycopg2.connect(st.secrets["DATABASE_URL"])
+    return psycopg2.connect(
+        st.secrets["DATABASE_URL"],
+        sslmode="require"
+    )
 
 def crear_tabla():
     conn = conectar()
