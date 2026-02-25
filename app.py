@@ -14,7 +14,7 @@ st.title("Money Saver")
 
 menu = st.sidebar.selectbox(
     "Seleccione una opción",
-    ["Agregar gasto", "Resumen por categoría", "Resumen mensual", "Exportar a Excel"]
+    ["Agregar gasto", "Resumen por categoría", "Exportar a Excel"]
 )
 
 # --------------------------
@@ -93,31 +93,6 @@ elif menu == "Resumen por categoría":
         else:
             st.metric("Total gastado", "$0")
 
-
-
-#elif menu == "Resumen por categoría":
-#
-#    st.header("Resumen por categoría")
-#    resumen = resumen_por_categoria()
-#
-#    if resumen.empty:
-#        st.info("No hay datos aún.")
-#    else:
-#        st.dataframe(resumen)
-
-
-# --------------------------
-# RESUMEN MENSUAL
-# --------------------------
-elif menu == "Resumen mensual":
-
-    st.header("Resumen mensual")
-    resumen = resumen_mensual()
-
-    if resumen.empty:
-        st.info("No hay datos aún.")
-    else:
-        st.dataframe(resumen)
 
 
 # --------------------------
