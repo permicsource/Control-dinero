@@ -5,7 +5,6 @@ from datetime import date
 from models import Gasto
 from database import crear_tabla, insertar_gasto
 from analysis import resumen_por_categoria, resumen_mensual, evolucion_mensual, exportar_a_excel, ultimos_gastos, gastos_por_categoria, obtener_sueldo, guardar_sueldo
-
 #Config pag
 
 st.set_page_config(
