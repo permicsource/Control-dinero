@@ -131,9 +131,35 @@ elif menu == "Resumen mensual":
     st.subheader("Sueldo del mes")
 
     if sueldo_actual is not None:
-        st.metric("Sueldo del mes", f"${sueldo_actual:,.0f}")
+        st.metric("Ingreso", f"${sueldo_actual:,.0f}")
     else:
         st.info("No hay sueldo registrado para este mes.")
+
+
+
+
+    if not resumen_cat.empty and sueldo_actual > 0:
+
+        valores = resumen_cat["total"]
+        etiquetas = resumen_cat["categoria"]
+
+        fig = {
+            "data": [{
+                "labels": etiquetas,
+                "values": valores,
+                "type": "pie",
+                "textinfo": "label+percent"
+            }]
+        }
+    
+
+        st.subheader("Distribución del sueldo")
+        st.plotly_chart(fig)
+
+        total_gastado = valores.sum()
+        ahorro = sueldo_actual - total_gastado
+
+        st.metric("Ahorro del mes", f"${ahorro:,.0f}")
 
     st.subheader("Detalle por categoría")
 
