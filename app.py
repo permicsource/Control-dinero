@@ -127,6 +127,14 @@ elif menu == "Resumen mensual":
         else:
             st.metric("Total gastado", "$0")
 
+    
+    st.subheader("Sueldo del mes")
+
+    if sueldo_actual is not None:
+        st.metric("Sueldo del mes", f"${sueldo_actual:,.0f}")
+    else:
+        st.info("No hay sueldo registrado para este mes.")
+
     st.subheader("Detalle por categoría")
 
     categoria_sel = st.selectbox(
