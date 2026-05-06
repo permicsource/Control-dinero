@@ -91,3 +91,16 @@ def evolucion_mensual(anio):
     conn.close()
     return df
 
+#Función para mostrar los últimos gastos registrados.
+
+def ultimos_gastos(n=3):
+    conn = conectar()
+    query = """
+        SELECT fecha, categoria, descripcion, monto
+        FROM gastos
+        ORDER BY fecha DESC, id DESC
+        LIMIT %s;
+    """
+    df = pd.read_sql(query, conn, params=(n,))
+    conn.close()
+    return df

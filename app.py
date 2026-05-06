@@ -4,7 +4,7 @@ import calendar
 from datetime import date
 from models import Gasto
 from database import crear_tabla, insertar_gasto
-from analysis import resumen_por_categoria, resumen_mensual, evolucion_mensual, exportar_a_excel
+from analysis import resumen_por_categoria, resumen_mensual, evolucion_mensual, exportar_a_excel, ultimos_gastos
 
 #Config pag
 
@@ -61,6 +61,16 @@ if menu == "Agregar gasto":
             gasto = Gasto(fecha, categoria, descripcion, monto)
             insertar_gasto(gasto)
             st.success("✔ Gasto guardado correctamente")
+    
+    
+    st.subheader("Últimos gastos ingresados")
+
+    df_ultimos = ultimos_gastos(3)
+
+    if not df_ultimos.empty:
+        st.dataframe(df_ultimos)
+    else:
+        st.info("Aún no hay gastos registrados.")
 
 
 # --------------------------
