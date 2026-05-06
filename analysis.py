@@ -104,3 +104,21 @@ def ultimos_gastos(n=3):
     df = pd.read_sql(query, conn, params=(n,))
     conn.close()
     return df
+
+#Función para mostrar los gastos de una categoría específica en un mes y año determinados.
+
+def gastos_por_categoria(mes, anio, categoria):
+    conn = conectar()
+
+    query = """
+        SELECT fecha, descripcion, monto
+        FROM gastos
+        WHERE EXTRACT(MONTH FROM fecha) = %s
+          AND EXTRACT(YEAR FROM fecha) = %s
+          AND categoria = %s
+        ORDER BY fecha DESC;
+    """
+
+    df = pd.read_sql(query, conn, params=(mes, anio, categoria))
+    conn.close()
+    return df

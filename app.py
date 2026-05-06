@@ -4,7 +4,7 @@ import calendar
 from datetime import date
 from models import Gasto
 from database import crear_tabla, insertar_gasto
-from analysis import resumen_por_categoria, resumen_mensual, evolucion_mensual, exportar_a_excel, ultimos_gastos
+from analysis import resumen_por_categoria, resumen_mensual, evolucion_mensual, exportar_a_excel, ultimos_gastos, gastos_por_categoria
 
 #Config pag
 
@@ -124,7 +124,16 @@ elif menu == "Resumen mensual":
         else:
             st.metric("Total gastado", "$0")
 
+    st.subheader("Detalle por categoría")
 
+    categoria_sel = st.selectbox(
+        "Selecciona categoría",
+        resumen_cat["categoria"].unique()
+    )
+
+    df_detalle = gastos_por_categoria(mes, anio, categoria_sel)
+
+    st.dataframe(df_detalle)
 
 # --------------------------
 # ANALISIS
