@@ -122,3 +122,40 @@ def gastos_por_categoria(mes, anio, categoria):
     df = pd.read_sql(query, conn, params=(mes, anio, categoria))
     conn.close()
     return df
+
+#Función para guardar el sueldo mensual en la base de datos.
+
+
+def guardar_sueldo(fecha_inicio, sueldo):
+    conn = conectar()
+    cursor = conn.cursor()
+
+    query = """
+        INSERT INTO sueldos (fecha_inicio, sueldo)
+        VALUES (%s, %s);
+    """
+
+    cursor.execute(query, (fecha_inicio, sueldo))
+    conn.commit()
+    conn.close()
+
+#Función para obtener el sueldo vigente en una fecha determinada.
+
+def obtener_sueldo(fecha):
+    conn = conectar()
+    cursor = conn.cursor()
+
+    query = """
+        SELECT sueldo
+        FROM sueldos
+        WHERE fecha_inicio <= %s
+        ORDER BY fecha_inicio DESC
+        LIMIT 1;
+    """
+
+    cursor.execute(query, (fecha,))
+    resultado = cursor.fetchone()
+
+    conn.close()
+
+    return resultado[0] if resultado else None

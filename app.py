@@ -4,7 +4,7 @@ import calendar
 from datetime import date
 from models import Gasto
 from database import crear_tabla, insertar_gasto
-from analysis import resumen_por_categoria, resumen_mensual, evolucion_mensual, exportar_a_excel, ultimos_gastos, gastos_por_categoria
+from analysis import resumen_por_categoria, resumen_mensual, evolucion_mensual, exportar_a_excel, ultimos_gastos, gastos_por_categoria, obtener_sueldo, guardar_sueldo
 
 #Config pag
 
@@ -18,6 +18,7 @@ st.set_page_config(
 hoy = datetime.date.today()
 mes_actual = hoy.month
 anio_actual = hoy.year
+
 
 # Lista nombres de meses
 meses = [
@@ -35,7 +36,7 @@ st.title("Money Saver")
 
 menu = st.sidebar.selectbox(
     "Seleccione una opción",
-    ["Agregar gasto", "Resumen mensual", "Análisis", "Exportar a Excel"]
+    ["Agregar gasto", "Resumen mensual", "Análisis", "Exportar a Excel", "Sueldos"]
 )
 
 # --------------------------
@@ -93,6 +94,9 @@ elif menu == "Resumen mensual":
 
         # Convertir nombre a número
         mes = meses.index(mes_nombre) + 1
+
+        fecha_consulta = date(anio, mes, 1)
+        sueldo_actual = obtener_sueldo(fecha_consulta)
 
     resumen_cat = resumen_por_categoria(mes, anio)
     resumen_mes = resumen_mensual(mes, anio)
@@ -201,3 +205,17 @@ elif menu == "Exportar a Excel":
     if st.button("Generar archivo Excel"):
         exportar_a_excel()
         st.success("✔ Archivo exportado como reporte_finanzas.xlsx")
+
+# --------------------------
+# Sueldos
+# --------------------------    
+
+elif menu == "Sueldos":
+
+    st.header("Actualizar sueldo")
+
+    nuevo_sueldo = st.number_input("Nuevo sueldo", min_value=0.0)
+
+    if st.button("Guardar nuevo sueldo"):
+        guardar_sueldo(date.today(), nuevo_sueldo)
+        st.success("Sueldo actualizado")
