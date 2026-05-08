@@ -138,9 +138,11 @@ elif menu == "Resumen mensual":
 
 
 
-    if not resumen_cat.empty and sueldo_actual is not None and sueldo_actual > 0:
+    if not resumen_cat.empty and sueldo_actual > 0:
 
-        total_gastado = resumen_cat["total"].sum()
+        total_gastado = float(resumen_cat["total"].sum())
+        sueldo_actual = float(sueldo_actual)
+
         ahorro = sueldo_actual - total_gastado
 
         etiquetas = list(resumen_cat["categoria"]) + ["Ahorro"]
