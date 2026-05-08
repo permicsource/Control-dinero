@@ -102,7 +102,7 @@ elif menu == "Resumen mensual":
         # 1. Definimos 4 columnas en lugar de 3. 
         # La segunda columna [0.5] servirá de "margen" o aire.
         # [Tabla, Espaciador, Estado, Gráfico]
-        col_tabla, col_espacio, col_status, col_grafico = st.columns([1.1, 0.4, 1, 2.3])
+        col_tabla, col_espacio, col_status, col_grafico = st.columns([1.1, 0.4, 1, 2.1])
 
         with col_tabla:
             st.subheader("Gasto por categoría")
@@ -117,11 +117,11 @@ elif menu == "Resumen mensual":
         with col_status:
             st.subheader("Estado")
             total_gastado = float(resumen_mes.iloc[0]["total_mes"]) if not resumen_mes.empty and resumen_mes.iloc[0]["total_mes"] else 0.0
-            st.metric("Total Gastado", f"${total_gastado:,.0f}")
 
             if sueldo_actual is not None:
                 sueldo_actual_f = float(sueldo_actual)
                 st.metric("Sueldo", f"${sueldo_actual_f:,.0f}")
+                st.metric("Total Gastado", f"${total_gastado:,.0f}")
                 ahorro_mes = sueldo_actual_f - total_gastado
                 st.metric("Ahorro", f"${ahorro_mes:,.0f}", delta=f"${ahorro_mes:,.0f}")
 
