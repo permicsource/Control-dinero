@@ -78,20 +78,13 @@ if menu == "Agregar gasto":
 # --------------------------
 
 elif menu == "Resumen mensual":
-
     st.header("Resumen mensual")
 
     col1, col2 = st.columns(2)
 
     with col1:
         anio = st.selectbox("Año", [2026], index=0)
-        mes_nombre = st.selectbox(
-            "Mes",
-            meses,
-            index=mes_actual - 1
-        )
-
-        # Convertir nombre a número
+        mes_nombre = st.selectbox("Mes", meses, index=mes_actual - 1)
         mes = meses.index(mes_nombre) + 1
 
         fecha_consulta = date(anio, mes, 1)
@@ -100,7 +93,7 @@ elif menu == "Resumen mensual":
     resumen_cat = resumen_por_categoria(mes, anio)
     resumen_mes = resumen_mensual(mes, anio)
 
-    col_tabla, col_resumen = st.columns([2,1])
+    col_tabla, col_resumen = st.columns([2, 1])
 
     with col_tabla:
         if resumen_cat.empty:
@@ -109,7 +102,7 @@ elif menu == "Resumen mensual":
             st.subheader("Gasto por categoría")
             st.dataframe(resumen_cat)
 
-            st.subheader("Distribución porcentual")
+            st.subheader("Distribución de gastos")
             st.plotly_chart({
                 "data": [{
                     "labels": resumen_cat["categoria"],
@@ -119,65 +112,70 @@ elif menu == "Resumen mensual":
             })
 
     with col_resumen:
-        st.subheader("Total del mes")
+        st.subheader("Estado Financiero")
+        
+        # 1. Mostrar Total Gastado
+        total_gastado = 0.0
+        if not resumen_mes.empty and resumen_mes.iloc[0]["total_mes"] is not None:
+            total_gastado = float(resumen_mes.iloc[0]["total_mes"])
+        
+        st.metric("Total gastado", f"${total_gastado:,.0f}")
 
-        if resumen_mes.iloc[0]["total_mes"] is not None:
-            total = resumen_mes.iloc[0]["total_mes"]
-            st.metric("Total gastado", f"${total:,.0f}")
+        # 2. Mostrar Sueldo
+        if sueldo_actual is not None:
+            st.metric("Sueldo del mes", f"${sueldo_actual:,.0f}")
+            
+            # 3. Calcular y mostrar Ahorro
+            ahorro = float(sueldo_actual) - total_gastado
+            color_ahorro = "normal" if ahorro >= 0 else "inverse"
+            st.metric("Ahorro del mes", f"${ahorro:,.0f}", delta=f"{ahorro:,.0f}", delta_color=color_ahorro)
         else:
-            st.metric("Total gastado", "$0")
+            st.info("No hay sueldo registrado.")
 
-    
-    st.subheader("Sueldo del mes")
-
-    if sueldo_actual is not None:
-        st.metric("Ingreso", f"${sueldo_actual:,.0f}")
-    else:
-        st.info("No hay sueldo registrado para este mes.")
-
-
-
-
-    if not resumen_cat.empty and sueldo_actual > 0:
-
+    # ---------------------------------------------------------
+    # Gráfico de Distribución del Sueldo (Gastos vs Ahorro)
+    # ---------------------------------------------------------
+    if not resumen_cat.empty and sueldo_actual and sueldo_actual > 0:
+        st.markdown("---")
+        st.subheader("¿A dónde se fue mi sueldo?")
+        
+        # Preparar datos para el gráfico de ahorro
         total_gastado = float(resumen_cat["total"].sum())
-        sueldo_actual = float(sueldo_actual)
-
-        ahorro = sueldo_actual - total_gastado
-
-        etiquetas = list(resumen_cat["categoria"]) + ["Ahorro"]
-        valores = list(resumen_cat["total"]) + [max(ahorro, 0)]
-
-        fig = {
+        ahorro_real = float(sueldo_actual) - total_gastado
+        
+        etiquetas = list(resumen_cat["categoria"])
+        valores = list(resumen_cat["total"])
+        
+        if ahorro_real > 0:
+            etiquetas.append("Ahorro")
+            valores.append(ahorro_real)
+        
+        fig_sueldo = {
             "data": [{
                 "labels": etiquetas,
                 "values": valores,
                 "type": "pie",
+                "hole": .4, # Lo hace tipo "Donut" para que se vea más moderno
                 "textinfo": "label+percent"
-            }]
+            }],
+            "layout": {"title": "Distribución Total del Ingreso"}
         }
-    
+        st.plotly_chart(fig_sueldo)
 
-        st.subheader("Distribución del sueldo")
-        st.plotly_chart(fig)
-
-        total_gastado = valores.sum()
-        ahorro = sueldo_actual - total_gastado
-
-        st.metric("Ahorro del mes", f"${ahorro:,.0f}")
-
+    # ---------------------------------------------------------
+    # Detalle por categoría (Ahora fuera de los bloques de error)
+    # ---------------------------------------------------------
     if not resumen_cat.empty:
-
-        st.subheader("Detalle por categoría")
-
+        st.markdown("---")
+        st.subheader("🔍 Detalle por categoría")
+        
         categoria_sel = st.selectbox(
-            "Selecciona categoría",
+            "Selecciona una categoría para ver el detalle:",
             resumen_cat["categoria"].unique()
         )
 
         df_detalle = gastos_por_categoria(mes, anio, categoria_sel)
-
-        st.dataframe(df_detalle)
+        st.table(df_detalle) # Usamos table o dataframe para mostrar los gastos
 
 # --------------------------
 # ANALISIS
