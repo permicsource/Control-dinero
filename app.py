@@ -98,6 +98,7 @@ elif menu == "Resumen mensual":
         st.info("No hay datos para este mes.")
     else:
         # 2. Layout de tres columnas para la parte superior
+        st.markdown("---")
         col_tabla, col_status, col_grafico = st.columns([1.5, 1, 2])
 
         with col_tabla:
@@ -151,12 +152,12 @@ elif menu == "Resumen mensual":
     # 3. Detalle por categoría al final (oculto por defecto y sin decimales)
     if not resumen_cat.empty:
         st.markdown("---")
-        st.subheader("🔍 Detalle por categoría")
+        st.subheader("Detalle por categoría")
         
-        opciones = ["Seleccione una categoría..."] + list(resumen_cat["categoria"].unique())
+        opciones = ["Seleccionar categoría"] + list(resumen_cat["categoria"].unique())
         categoria_sel = st.selectbox("¿De qué categoría quieres ver los gastos?", opciones)
 
-        if categoria_sel != "Seleccione una categoría...":
+        if categoria_sel != "Seleccionar categoría":
             df_detalle = gastos_por_categoria(mes, anio, categoria_sel)
             
             if not df_detalle.empty:
