@@ -140,8 +140,11 @@ elif menu == "Resumen mensual":
 
     if not resumen_cat.empty and sueldo_actual > 0:
 
-        valores = resumen_cat["total"]
-        etiquetas = resumen_cat["categoria"]
+        total_gastado = resumen_cat["total"].sum()
+        ahorro = sueldo_actual - total_gastado
+
+        etiquetas = list(resumen_cat["categoria"]) + ["Ahorro"]
+        valores = list(resumen_cat["total"]) + [max(ahorro, 0)]
 
         fig = {
             "data": [{
@@ -161,16 +164,18 @@ elif menu == "Resumen mensual":
 
         st.metric("Ahorro del mes", f"${ahorro:,.0f}")
 
-    st.subheader("Detalle por categoría")
+    if not resumen_cat.empty:
 
-    categoria_sel = st.selectbox(
-        "Selecciona categoría",
-        resumen_cat["categoria"].unique()
-    )
+        st.subheader("Detalle por categoría")
 
-    df_detalle = gastos_por_categoria(mes, anio, categoria_sel)
+        categoria_sel = st.selectbox(
+            "Selecciona categoría",
+            resumen_cat["categoria"].unique()
+        )
 
-    st.dataframe(df_detalle)
+        df_detalle = gastos_por_categoria(mes, anio, categoria_sel)
+
+        st.dataframe(df_detalle)
 
 # --------------------------
 # ANALISIS
