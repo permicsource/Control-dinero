@@ -10,7 +10,7 @@ from analysis import resumen_por_categoria, resumen_mensual, evolucion_mensual, 
 st.set_page_config(
     page_title="Money Saver",
     page_icon="assets/icon.png",
-    layout="centered"
+    layout="wide"
 )
 
 #Fecha Hoy
