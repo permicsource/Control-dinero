@@ -80,87 +80,79 @@ if menu == "Agregar gasto":
 elif menu == "Resumen mensual":
     st.header("Resumen mensual")
 
-    col1, col2 = st.columns(2)
-
-    with col1:
+    # 1. Selección de fecha y obtención de sueldo
+    col_fecha1, col_fecha2 = st.columns(2)
+    with col_fecha1:
         anio = st.selectbox("Año", [2026], index=0)
         mes_nombre = st.selectbox("Mes", meses, index=mes_actual - 1)
         mes = meses.index(mes_nombre) + 1
-
+        
         fecha_consulta = date(anio, mes, 1)
         sueldo_actual = obtener_sueldo(fecha_consulta)
 
+    # Obtención de datos desde la base de datos
     resumen_cat = resumen_por_categoria(mes, anio)
     resumen_mes = resumen_mensual(mes, anio)
 
-    col_tabla, col_resumen = st.columns([2, 1])
+    if resumen_cat.empty:
+        st.info("No hay datos para este mes.")
+    else:
+        # 2. Layout de tres columnas para la parte superior
+        col_tabla, col_status, col_grafico = st.columns([1.5, 1, 2])
 
-    with col_tabla:
-        if resumen_cat.empty:
-            st.info("No hay datos para este mes.")
-        else:
+        with col_tabla:
             st.subheader("Gasto por categoría")
-            # Mostramos la tabla general de gastos sin índice para que sea más limpia
-            st.dataframe(resumen_cat, hide_index=True, use_container_width=True)
+            # Formateamos los números de la tabla principal para que no tengan decimales
+            resumen_cat_fmt = resumen_cat.copy()
+            resumen_cat_fmt["total"] = resumen_cat_fmt["total"].astype(float).round(0).astype(int)
+            st.dataframe(resumen_cat_fmt, hide_index=True, use_container_width=True)
 
-    with col_resumen:
-        st.subheader("Estado Financiero")
-        
-        # Obtenemos el total gastado de forma segura
-        total_gastado = 0.0
-        if not resumen_mes.empty and resumen_mes.iloc[0]["total_mes"] is not None:
-            total_gastado = float(resumen_mes.iloc[0]["total_mes"])
-        
-        st.metric("Total gastado", f"${total_gastado:,.0f}")
-
-        if sueldo_actual is not None:
-            sueldo_actual_f = float(sueldo_actual)
-            st.metric("Sueldo del mes", f"${sueldo_actual_f:,.0f}")
+        with col_status:
+            st.subheader("Estado")
             
-            # Cálculo de ahorro
-            ahorro_mes = sueldo_actual_f - total_gastado
-            st.metric("Ahorro del mes", f"${ahorro_mes:,.0f}", delta=f"${ahorro_mes:,.0f}")
-        else:
-            st.info("No hay sueldo registrado.")
+            # Cálculo de montos
+            total_gastado = float(resumen_mes.iloc[0]["total_mes"]) if not resumen_mes.empty and resumen_mes.iloc[0]["total_mes"] else 0.0
+            st.metric("Total Gastado", f"${total_gastado:,.0f}")
 
-    # ---------------------------------------------------------
-    # ÚNICO GRÁFICO: Distribución Total del Ingreso
-    # ---------------------------------------------------------
-    if not resumen_cat.empty and sueldo_actual and sueldo_actual > 0:
-        st.markdown("---")
-        st.subheader("Distribución total del ingreso")
-        
-        # Preparamos los datos para el gráfico
-        etiquetas = list(resumen_cat["categoria"])
-        valores = list(resumen_cat["total"])
-        
-        total_gasto_real = sum(valores) # Usamos sum() nativo de Python para evitar errores
-        ahorro_real = float(sueldo_actual) - total_gasto_real
-        
-        if ahorro_real > 0:
-            etiquetas.append("Ahorro")
-            valores.append(ahorro_real)
-        
-        fig = {
-            "data": [{
-                "labels": etiquetas,
-                "values": valores,
-                "type": "pie",
-                "hole": .4, # Estilo Donut
-                "textinfo": "label+percent"
-            }],
-            "layout": {"title": "Gastos vs Ahorro"}
-        }
-        st.plotly_chart(fig)
+            if sueldo_actual is not None:
+                sueldo_actual_f = float(sueldo_actual)
+                st.metric("Sueldo", f"${sueldo_actual_f:,.0f}")
+                
+                ahorro_mes = sueldo_actual_f - total_gastado
+                st.metric("Ahorro", f"${ahorro_mes:,.0f}", delta=f"${ahorro_mes:,.0f}")
+            else:
+                st.info("Sin sueldo")
 
-    # ---------------------------------------------------------
-    # DETALLE POR CATEGORÍA (Oculto por defecto y sin decimales)
-    # ---------------------------------------------------------
+        with col_grafico:
+            st.subheader("Distribución")
+            
+            # Preparación de datos para el gráfico
+            etiquetas = list(resumen_cat["categoria"])
+            valores = [float(v) for v in resumen_cat["total"]]
+            
+            # Cálculo del ahorro para el gráfico
+            if sueldo_actual and float(sueldo_actual) > sum(valores):
+                ahorro_grafico = float(sueldo_actual) - sum(valores)
+                etiquetas.append("Ahorro")
+                valores.append(ahorro_grafico)
+            
+            fig = {
+                "data": [{
+                    "labels": etiquetas,
+                    "values": valores,
+                    "type": "pie",
+                    "hole": .4,
+                    "textinfo": "label+percent"
+                }],
+                "layout": {"margin": dict(t=0, b=0, l=0, r=0), "height": 300}
+            }
+            st.plotly_chart(fig, use_container_width=True)
+
+    # 3. Detalle por categoría al final (oculto por defecto y sin decimales)
     if not resumen_cat.empty:
         st.markdown("---")
         st.subheader("🔍 Detalle por categoría")
         
-        # Opción neutra para que no cargue nada al inicio
         opciones = ["Seleccione una categoría..."] + list(resumen_cat["categoria"].unique())
         categoria_sel = st.selectbox("¿De qué categoría quieres ver los gastos?", opciones)
 
@@ -168,13 +160,11 @@ elif menu == "Resumen mensual":
             df_detalle = gastos_por_categoria(mes, anio, categoria_sel)
             
             if not df_detalle.empty:
-                # Limpiamos decimales: convertimos a float y redondeamos a entero
-                df_detalle["monto"] = df_detalle["monto"].astype(float).round(0).astype(int) #[cite: 39]
-                
-                # Mostramos la tabla optimizada
-                st.dataframe(df_detalle, use_container_width=True, hide_index=True) #[cite: 43]
+                # Eliminación de los 4 ceros decimales (.0000) de PostgreSQL
+                df_detalle["monto"] = df_detalle["monto"].astype(float).round(0).astype(int)
+                st.dataframe(df_detalle, use_container_width=True, hide_index=True)
             else:
-                st.warning("No hay registros para esta categoría.")
+                st.warning("No hay registros detallados.")
 
 # --------------------------
 # ANALISIS
