@@ -114,16 +114,19 @@ elif menu == "Resumen mensual":
     with col_resumen:
         st.subheader("Estado Financiero")
         
-        # 1. Mostrar Total Gastado
         total_gastado = 0.0
-        if not resumen_mes.empty and resumen_mes.iloc[0]["total_mes"] is not None:
-            total_gastado = float(resumen_mes.iloc[0]["total_mes"])
         
         st.metric("Total gastado", f"${total_gastado:,.0f}")
 
         # 2. Mostrar Sueldo
         if sueldo_actual is not None:
             st.metric("Sueldo del mes", f"${sueldo_actual:,.0f}")
+            
+
+        # 1. Mostrar Total Gastado
+        
+        if not resumen_mes.empty and resumen_mes.iloc[0]["total_mes"] is not None:
+            total_gastado = float(resumen_mes.iloc[0]["total_mes"])
             
             # 3. Calcular y mostrar Ahorro
             ahorro = float(sueldo_actual) - total_gastado
