@@ -138,7 +138,7 @@ elif menu == "Resumen mensual":
 
 
 
-    if not resumen_cat.empty and sueldo_actual > 0:
+    if not resumen_cat.empty and sueldo_actual is not None and sueldo_actual > 0:
 
         total_gastado = resumen_cat["total"].sum()
         ahorro = sueldo_actual - total_gastado
