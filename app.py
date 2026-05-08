@@ -102,7 +102,7 @@ elif menu == "Resumen mensual":
         # 1. Definimos 4 columnas en lugar de 3. 
         # La segunda columna [0.5] servirá de "margen" o aire.
         # [Tabla, Espaciador, Estado, Gráfico]
-        col_tabla, col_espacio, col_status, col_grafico = st.columns([1, 0.5, 1, 2])
+        col_tabla, col_espacio, col_status, col_grafico = st.columns([1.1, 0.4, 1, 1.9])
 
         with col_tabla:
             st.subheader("Gasto por categoría")
