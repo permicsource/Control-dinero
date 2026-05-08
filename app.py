@@ -165,19 +165,36 @@ elif menu == "Resumen mensual":
         st.plotly_chart(fig_sueldo)
 
     # ---------------------------------------------------------
-    # Detalle por categoría (Ahora fuera de los bloques de error)
+    # Detalle por categoría (Optimizado)
     # ---------------------------------------------------------
     if not resumen_cat.empty:
-        st.markdown("---")
+        st.markdown("---") # Separación visual sugerida anteriormente 
         st.subheader("🔍 Detalle por categoría")
         
+        # 1. Añadimos una opción inicial vacía para que no cargue nada por defecto
+        opciones = ["Seleccione una categoría..."] + list(resumen_cat["categoria"].unique())
+        
         categoria_sel = st.selectbox(
-            "Selecciona una categoría para ver el detalle:",
-            resumen_cat["categoria"].unique()
+            "¿De qué categoría quieres ver los gastos?",
+            opciones
         )
 
-        df_detalle = gastos_por_categoria(mes, anio, categoria_sel)
-        st.table(df_detalle) # Usamos table o dataframe para mostrar los gastos
+        # 2. Solo se despliega si el usuario elige una categoría real
+        if categoria_sel != "Seleccione una categoría...":
+            df_detalle = gastos_por_categoria(mes, anio, categoria_sel)
+
+            if not df_detalle.empty:
+                # 3. Eliminamos los decimales y formateamos el monto
+                # Convertimos a float y luego a entero o string con formato
+                df_detalle["monto"] = df_detalle["monto"].astype(float).round(0).astype(int)
+                
+                # Opcional: Si prefieres que mantenga el signo '$' y separador de miles:
+                # df_detalle["monto"] = df_detalle["monto"].apply(lambda x: f"${x:,.0f}")
+
+                # Usamos dataframe en lugar de table para que sea más dinámico
+                st.dataframe(df_detalle, use_container_width=True, hide_index=True)
+            else:
+                st.warning("No hay registros detallados para esta categoría.")
 
 # --------------------------
 # ANALISIS
