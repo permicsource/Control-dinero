@@ -99,30 +99,31 @@ elif menu == "Resumen mensual":
     else:
         # 2. Layout de tres columnas para la parte superior
         st.markdown("---")
-        col_tabla, col_status, col_grafico = st.columns([1.5, 1, 2])
+        # 1. Definimos 4 columnas en lugar de 3. 
+        # La segunda columna [0.5] servirá de "margen" o aire.
+        # [Tabla, Espaciador, Estado, Gráfico]
+        col_tabla, col_espacio, col_status, col_grafico = st.columns([1.5, 0.5, 1, 2])
 
         with col_tabla:
             st.subheader("Gasto por categoría")
-            # Formateamos los números de la tabla principal para que no tengan decimales
             resumen_cat_fmt = resumen_cat.copy()
             resumen_cat_fmt["total"] = resumen_cat_fmt["total"].astype(float).round(0).astype(int)
             st.dataframe(resumen_cat_fmt, hide_index=True, use_container_width=True)
 
+        with col_espacio:
+            # Esta columna se queda vacía, funciona como un margen ajustable
+            st.write("") 
+
         with col_status:
             st.subheader("Estado")
-            
-            # Cálculo de montos
             total_gastado = float(resumen_mes.iloc[0]["total_mes"]) if not resumen_mes.empty and resumen_mes.iloc[0]["total_mes"] else 0.0
             st.metric("Total Gastado", f"${total_gastado:,.0f}")
 
             if sueldo_actual is not None:
                 sueldo_actual_f = float(sueldo_actual)
                 st.metric("Sueldo", f"${sueldo_actual_f:,.0f}")
-                
                 ahorro_mes = sueldo_actual_f - total_gastado
                 st.metric("Ahorro", f"${ahorro_mes:,.0f}", delta=f"${ahorro_mes:,.0f}")
-            else:
-                st.info("Sin sueldo")
 
         with col_grafico:
             st.subheader("Distribución")
