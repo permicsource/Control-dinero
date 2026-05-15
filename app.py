@@ -173,56 +173,113 @@ elif menu == "Resumen mensual":
 # --------------------------
 
 elif menu == "Análisis":
+    st.header("Análisis de Evolución Financiera")
 
-    st.header("Evolución mensual de gastos")
+    anio_analisis = st.selectbox("Seleccione el año para el análisis", [2024, 2025, 2026], index=2)
 
-    anio = st.selectbox("Año", [2026], index=0)
-
-    df_evolucion = evolucion_mensual(anio)
+    # 1. Obtener evolución de gastos por categoría (Pivot Table)
+    df_evolucion = evolucion_mensual(anio_analisis)
 
     if df_evolucion.empty:
-        st.info("No hay datos para este año.")
+        st.info(f"No hay datos registrados para el año {anio_analisis}.")
     else:
-        # Pivotear datos para stacked bar
-        df_pivot = df_evolucion.pivot(
-            index="mes",
-            columns="categoria",
-            values="total"
-        ).fillna(0)
-
-        # Ordenar meses
-        df_pivot = df_pivot.sort_index()
-
-        meses = [
-            "Enero", "Febrero", "Marzo", "Abril",
-            "Mayo", "Junio", "Julio", "Agosto",
-            "Septiembre", "Octubre", "Noviembre", "Diciembre"
-        ]
-        df_pivot.index = [meses[int(m)-1] for m in df_pivot.index]
-
-
-        import plotly.graph_objects as go
-
-        fig = go.Figure()
-
-        for categoria in df_pivot.columns:
-            fig.add_trace(go.Bar(
-                x=df_pivot.index,
-                y=df_pivot[categoria],
-                name=categoria,
-                hovertemplate=f"{categoria}: %{{y}}<extra></extra>"
-            ))
+        # Calcular totales mensuales de gastos
+        # El índice de df_evolucion son los números de mes (1, 2, 3...)
+        gastos_mensuales = df_evolucion.sum(axis=1) 
+        
+        # 2. Calcular Ingresos y Ahorros por mes
+        datos_analisis = []
+        ahorro_acumulado = 0
+        
+        for mes_num in range(1, 13):
+            # Obtener gasto del mes (si no hay, es 0)
+            gasto_del_mes = gastos_mensuales.get(mes_num, 0.0)
             
+            # Obtener sueldo para ese mes específico
+            fecha_mes = date(anio_analisis, mes_num, 1)
+            sueldo_mes = obtener_sueldo(fecha_mes)
+            sueldo_mes = float(sueldo_mes) if sueldo_mes else 0.0
+            
+            # Solo procesar meses que tengan sueldo o gastos registrados
+            if sueldo_mes > 0 or gasto_del_mes > 0:
+                ahorro_mes = sueldo_mes - gasto_del_mes
+                ahorro_acumulado += ahorro_mes
+                
+                datos_analisis.append({
+                    "Mes": meses[mes_num-1],
+                    "Ingresos": sueldo_mes,
+                    "Gastos": gasto_del_mes,
+                    "Ahorro": ahorro_mes,
+                    "Ahorro Acumulado": ahorro_acumulado,
+                    "Tasa de Ahorro (%)": (ahorro_mes / sueldo_mes * 100) if sueldo_mes > 0 else 0
+                })
 
-        fig.update_layout(
-            barmode='stack',
-            xaxis_title="Mes",
-            yaxis_title="Total gastado",
-            legend_title="Categoría",
-            height=500
-        )
+        df_analisis = pd.DataFrame(datos_analisis)
 
-        st.plotly_chart(fig, use_container_width=True)
+        # --------------------------
+        # MÉTRICAS ANUALES (Resumen rápido)
+        # --------------------------
+        st.subheader(f"Resumen Anual {anio_analisis}")
+        m1, m2, m3, m4 = st.columns(4)
+        
+        total_ahorrado_anio = df_analisis["Ahorro"].sum()
+        promedio_ahorro_mensual = df_analisis["Ahorro"].mean()
+        tasa_ahorro_promedio = df_analisis["Tasa de Ahorro (%)"].mean()
+
+        m1.metric("Total Ahorrado", f"${total_ahorrado_anio:,.0f}")
+        m2.metric("Promedio Mensual", f"${promedio_ahorro_mensual:,.0f}")
+        m3.metric("Tasa de Ahorro Media", f"{tasa_ahorro_promedio:.1f}%")
+        m4.metric("Ahorro Acumulado Final", f"${ahorro_acumulado:,.0f}")
+
+        st.markdown("---")
+
+        # --------------------------
+        # GRÁFICOS
+        # --------------------------
+        col_g1, col_g2 = st.columns(2)
+
+        with col_g1:
+            st.subheader("Gastos por Categoría")
+            # Tu gráfico de barras original (mejorado)
+            import plotly.graph_objects as go
+            fig_bar = go.Figure()
+            for cat in df_evolucion.columns:
+                fig_bar.add_trace(go.Bar(
+                    x=[meses[int(m)-1] for m in df_evolucion.index],
+                    y=df_evolucion[cat],
+                    name=cat
+                ))
+            fig_bar.update_layout(barmode='stack', height=400, margin=dict(t=20, b=20, l=20, r=20))
+            st.plotly_chart(fig_bar, use_container_width=True)
+
+        with col_g2:
+            st.subheader("Evolución del Ahorro Acumulado")
+            # Nuevo gráfico de línea para el acumulado
+            fig_line = go.Figure()
+            fig_line.add_trace(go.Scatter(
+                x=df_analisis["Mes"],
+                y=df_analisis["Ahorro Acumulado"],
+                mode='lines+markers',
+                fill='tozeroy',
+                line=dict(color='#2ecc71', width=3),
+                name="Acumulado"
+            ))
+            fig_line.update_layout(height=400, margin=dict(t=20, b=20, l=20, r=20))
+            st.plotly_chart(fig_line, use_container_width=True)
+
+        # --------------------------
+        # TABLAS DE DATOS
+        # --------------------------
+        st.markdown("---")
+        st.subheader("Tabla Comparativa Mensual")
+        
+        # Formatear la tabla para mostrar sin decimales y con separador de miles
+        df_mostrar = df_analisis.copy()
+        for col in ["Ingresos", "Gastos", "Ahorro", "Ahorro Acumulado"]:
+            df_mostrar[col] = df_mostrar[col].apply(lambda x: f"${x:,.0f}")
+        df_mostrar["Tasa de Ahorro (%)"] = df_mostrar["Tasa de Ahorro (%)"].apply(lambda x: f"{x:.1f}%")
+        
+        st.table(df_mostrar.set_index("Mes"))
 
 # --------------------------
 # EXPORTAR
