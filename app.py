@@ -1,6 +1,7 @@
 import streamlit as st
 import datetime
 import calendar
+import pandas as pd
 from datetime import date
 from models import Gasto
 from database import crear_tabla, insertar_gasto
@@ -177,14 +178,17 @@ elif menu == "Análisis":
 
     anio_analisis = st.selectbox("Seleccione el año para el análisis", [2024, 2025, 2026], index=2)
 
-    # 1. Obtener evolución de gastos por categoría (Pivot Table)
-    df_evolucion = evolucion_mensual(anio_analisis)
+    # 1. Obtener datos base
+    df_raw = evolucion_mensual(anio_analisis)
 
-    if df_evolucion.empty:
+    if df_raw.empty:
         st.info(f"No hay datos registrados para el año {anio_analisis}.")
     else:
-        # Calcular totales mensuales de gastos
-        # El índice de df_evolucion son los números de mes (1, 2, 3...)
+        # --- CORRECCIÓN AQUÍ: Pivotar para que las columnas sean solo números ---
+        # Transformamos: mes, categoria, total -> Mes como índice, Categorías como columnas
+        df_evolucion = df_raw.pivot(index="mes", columns="categoria", values="total").fillna(0)
+        
+        # Ahora el sum(axis=1) sumará solo los montos de cada categoría por mes
         gastos_mensuales = df_evolucion.sum(axis=1) 
         
         # 2. Calcular Ingresos y Ahorros por mes
@@ -192,15 +196,13 @@ elif menu == "Análisis":
         ahorro_acumulado = 0
         
         for mes_num in range(1, 13):
-            # Obtener gasto del mes (si no hay, es 0)
-            gasto_del_mes = gastos_mensuales.get(mes_num, 0.0)
+            # Obtener gasto del mes (ahora el índice es el número de mes)
+            gasto_del_mes = gastos_mensuales.get(float(mes_num), 0.0)
             
-            # Obtener sueldo para ese mes específico
             fecha_mes = date(anio_analisis, mes_num, 1)
             sueldo_mes = obtener_sueldo(fecha_mes)
             sueldo_mes = float(sueldo_mes) if sueldo_mes else 0.0
             
-            # Solo procesar meses que tengan sueldo o gastos registrados
             if sueldo_mes > 0 or gasto_del_mes > 0:
                 ahorro_mes = sueldo_mes - gasto_del_mes
                 ahorro_acumulado += ahorro_mes
