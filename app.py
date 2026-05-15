@@ -189,17 +189,13 @@ elif menu == "Análisis":
         datos_analisis = []
         ahorro_acumulado = 0
         
-        # --- FILTRO DE MES ACTUAL ---
-        # Determinamos hasta qué mes mostrar:
-        # Si el año es el futuro, no mostramos nada (12).
-        # Si es el año actual, mostramos hasta mes_actual.
-        # Si es un año pasado, mostramos los 12 meses.
+        # --- FILTRO DE MES ANTERIOR (SÓLO MESES CERRADOS) ---
         if anio_analisis == anio_actual:
-            meses_a_procesar = mes_actual
+            meses_a_procesar = mes_actual - 1  # <--- Cambiado aquí para procesar hasta el mes anterior cerrado
         elif anio_analisis < anio_actual:
-            meses_a_procesar = 12
+            meses_a_procesar = 12  # Si es un año pasado, se muestran los 12 meses completos
         else:
-            meses_a_procesar = 0 # Para años futuros aún sin empezar
+            meses_a_procesar = 0  # Años futuros
 
         for mes_num in range(1, meses_a_procesar + 1):
             gasto_del_mes = gastos_mensuales.get(float(mes_num), 0.0)
@@ -208,7 +204,6 @@ elif menu == "Análisis":
             sueldo_mes = obtener_sueldo(fecha_mes)
             sueldo_mes = float(sueldo_mes) if sueldo_mes else 0.0
             
-            # Calculamos el ahorro solo si estamos en el pasado o presente
             ahorro_mes = sueldo_mes - gasto_del_mes
             ahorro_acumulado += ahorro_mes
             
@@ -222,7 +217,7 @@ elif menu == "Análisis":
             })
 
         if not datos_analisis:
-            st.warning("No hay datos para mostrar en el periodo seleccionado.")
+            st.warning("No hay meses completamente terminados para mostrar en este año todavía.")
         else:
             df_analisis = pd.DataFrame(datos_analisis)
 
