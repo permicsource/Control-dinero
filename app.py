@@ -178,45 +178,53 @@ elif menu == "Análisis":
 
     anio_analisis = st.selectbox("Seleccione el año para el análisis", [2024, 2025, 2026], index=2)
 
-    # 1. Obtener datos base
     df_raw = evolucion_mensual(anio_analisis)
 
     if df_raw.empty:
         st.info(f"No hay datos registrados para el año {anio_analisis}.")
     else:
-        # --- CORRECCIÓN AQUÍ: Pivotar para que las columnas sean solo números ---
-        # Transformamos: mes, categoria, total -> Mes como índice, Categorías como columnas
         df_evolucion = df_raw.pivot(index="mes", columns="categoria", values="total").fillna(0)
-        
-        # Ahora el sum(axis=1) sumará solo los montos de cada categoría por mes
         gastos_mensuales = df_evolucion.sum(axis=1) 
         
-        # 2. Calcular Ingresos y Ahorros por mes
         datos_analisis = []
         ahorro_acumulado = 0
         
-        for mes_num in range(1, 13):
-            # Obtener gasto del mes (ahora el índice es el número de mes)
+        # --- FILTRO DE MES ACTUAL ---
+        # Determinamos hasta qué mes mostrar:
+        # Si el año es el futuro, no mostramos nada (12).
+        # Si es el año actual, mostramos hasta mes_actual.
+        # Si es un año pasado, mostramos los 12 meses.
+        if anio_analisis == anio_actual:
+            meses_a_procesar = mes_actual
+        elif anio_analisis < anio_actual:
+            meses_a_procesar = 12
+        else:
+            meses_a_procesar = 0 # Para años futuros aún sin empezar
+
+        for mes_num in range(1, meses_a_procesar + 1):
             gasto_del_mes = gastos_mensuales.get(float(mes_num), 0.0)
             
             fecha_mes = date(anio_analisis, mes_num, 1)
             sueldo_mes = obtener_sueldo(fecha_mes)
             sueldo_mes = float(sueldo_mes) if sueldo_mes else 0.0
             
-            if sueldo_mes > 0 or gasto_del_mes > 0:
-                ahorro_mes = sueldo_mes - gasto_del_mes
-                ahorro_acumulado += ahorro_mes
-                
-                datos_analisis.append({
-                    "Mes": meses[mes_num-1],
-                    "Ingresos": sueldo_mes,
-                    "Gastos": gasto_del_mes,
-                    "Ahorro": ahorro_mes,
-                    "Ahorro Acumulado": ahorro_acumulado,
-                    "Tasa de Ahorro (%)": (ahorro_mes / sueldo_mes * 100) if sueldo_mes > 0 else 0
-                })
+            # Calculamos el ahorro solo si estamos en el pasado o presente
+            ahorro_mes = sueldo_mes - gasto_del_mes
+            ahorro_acumulado += ahorro_mes
+            
+            datos_analisis.append({
+                "Mes": meses[mes_num-1],
+                "Ingresos": sueldo_mes,
+                "Gastos": gasto_del_mes,
+                "Ahorro": ahorro_mes,
+                "Ahorro Acumulado": ahorro_acumulado,
+                "Tasa de Ahorro (%)": (ahorro_mes / sueldo_mes * 100) if sueldo_mes > 0 else 0
+            })
 
-        df_analisis = pd.DataFrame(datos_analisis)
+        if not datos_analisis:
+            st.warning("No hay datos para mostrar en el periodo seleccionado.")
+        else:
+            df_analisis = pd.DataFrame(datos_analisis)
 
         # --------------------------
         # MÉTRICAS ANUALES (Resumen rápido)
