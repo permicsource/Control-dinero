@@ -189,15 +189,20 @@ elif menu == "Análisis":
         datos_analisis = []
         ahorro_acumulado = 0
         
-        # --- FILTRO DE MES ANTERIOR (SÓLO MESES CERRADOS) ---
+        # --- FILTRO DE RANGO DE MESES (SÓLO MESES CERRADOS Y DESDE EL INICIO REAL) ---
         if anio_analisis == anio_actual:
-            meses_a_procesar = mes_actual - 1  # <--- Cambiado aquí para procesar hasta el mes anterior cerrado
+            meses_a_procesar = mes_actual - 1  # Hasta el mes anterior cerrado
+            # CORRECCIÓN: Si es 2026, empezamos en Marzo (3). Si no, en Enero (1).
+            mes_inicio = 3 if anio_analisis == 2026 else 1 
         elif anio_analisis < anio_actual:
-            meses_a_procesar = 12  # Si es un año pasado, se muestran los 12 meses completos
+            meses_a_procesar = 12
+            mes_inicio = 1
         else:
-            meses_a_procesar = 0  # Años futuros
+            meses_a_procesar = 0
+            mes_inicio = 1
 
-        for mes_num in range(1, meses_a_procesar + 1):
+        # El bucle ahora inicia en 'mes_inicio' en lugar de fijarse siempre en 1
+        for mes_num in range(mes_inicio, meses_a_procesar + 1):
             gasto_del_mes = gastos_mensuales.get(float(mes_num), 0.0)
             
             fecha_mes = date(anio_analisis, mes_num, 1)
@@ -217,7 +222,7 @@ elif menu == "Análisis":
             })
 
         if not datos_analisis:
-            st.warning("No hay meses completamente terminados para mostrar en este año todavía.")
+            st.warning("No hay meses completamente terminados para mostrar en este periodo todavía.")
         else:
             df_analisis = pd.DataFrame(datos_analisis)
 
