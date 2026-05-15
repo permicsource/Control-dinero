@@ -291,6 +291,66 @@ elif menu == "Análisis":
         
         st.table(df_mostrar.set_index("Mes"))
 
+
+        # =====================================================================
+        # PROYECCIÓN DE AHORRO
+        # =====================================================================
+        st.markdown("---")
+        st.subheader("Proyección Financiera")
+        
+        st.markdown(
+            f"Basado en tu comportamiento histórico de este año, tu ahorro promedio mensual es de "
+            f"**${promedio_ahorro_mensual:,.0f}**. Utiliza el control de abajo para estimar tu patrimonio futuro."
+        )
+
+        # Slider interactivo para seleccionar de 1 a 60 meses (5 años)
+        meses_proyeccion = st.slider("Meses a proyectar hacia el futuro:", min_value=1, max_value=60, value=12, step=1)
+
+        # Cálculos predictivos lineales
+        nuevo_ahorro_proyectado = promedio_ahorro_mensual * meses_proyeccion
+        patrimonio_total_estimado = ahorro_acumulado + nuevo_ahorro_proyectado
+
+        # Visualización de métricas estimadas
+        col_p1, col_p2, col_p3 = st.columns(3)
+        
+        col_p1.metric(
+            label=f"Ahorro Nuevo Est. ({meses_proyeccion} meses)", 
+            value=f"${nuevo_ahorro_proyectado:,.0f}"
+        )
+        col_p2.metric(
+            label="Tu Base Actual", 
+            value=f"${ahorro_acumulado:,.0f}",
+            help="Este es el total acumulado real que llevas guardado hasta el último mes cerrado."
+        )
+        col_p3.metric(
+            label="Total Estimado Final", 
+            value=f"${patrimonio_total_estimado:,.0f}",
+            help="La suma de lo que ya tienes hoy más el ahorro proyectado."
+        )
+
+        # Gráfico complementario de la tendencia de la proyección
+        meses_futuros = [f"+{i} mes" if i == 1 else f"+{i} meses" for i in range(1, meses_proyeccion + 1)]
+        valores_crecimiento = [ahorro_acumulado + (promedio_ahorro_mensual * i) for i in range(1, meses_proyeccion + 1)]
+
+        fig_proyeccion = go.Figure()
+        fig_proyeccion.add_trace(go.Scatter(
+            x=meses_futuros,
+            y=valores_crecimiento,
+            mode='lines+markers',
+            line=dict(color='#3498db', width=2, dash='dash'),
+            name="Crecimiento estimado",
+            hovertemplate="Mes futuro: %{x}<br>Total Estimado: %{y:,.0f}<extra></extra>"
+        ))
+        
+        fig_proyeccion.update_layout(
+            title=f"Línea de Tendencia: Crecimiento de tu capital a {meses_proyeccion} meses",
+            height=350,
+            margin=dict(t=40, b=20, l=20, r=20),
+            xaxis=dict(tickangle=-45 if meses_proyeccion > 15 else 0) # Inclina los meses si son demasiados
+        )
+        
+        st.plotly_chart(fig_proyeccion, use_container_width=True)
+
 # --------------------------
 # EXPORTAR
 # --------------------------
