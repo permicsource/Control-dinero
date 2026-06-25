@@ -2,6 +2,8 @@ import pandas as pd
 from database import conectar
 import psycopg2
 from database import conectar
+from io import BytesIO
+
 
 #Extrae los datos de la base de datos y los convierte en un df.
 def obtener_dataframe():
