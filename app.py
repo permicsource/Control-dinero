@@ -358,9 +358,14 @@ elif menu == "Exportar a Excel":
 
     st.header("Exportar datos")
 
-    if st.button("Generar archivo Excel"):
-        exportar_a_excel()
-        st.success("✔ Archivo exportado como reporte_finanzas.xlsx")
+    excel = exportar_a_excel()
+
+    st.download_button(
+        label="📥 Descargar Excel",
+        data=excel,
+        file_name="reporte_finanzas.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
 # --------------------------
 # Sueldos

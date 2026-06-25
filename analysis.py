@@ -52,24 +52,27 @@ def resumen_mensual(mes, anio):
 
 
 #Exporta los datos en excel.
-def exportar_a_excel(nombre_archivo="reporte_finanzas.xlsx"):
-    df = obtener_dataframe()
+def exportar_a_excel():
+    conn = conectar()
 
-    if df.empty:
-        print("No hay datos para exportar.")
-        return
+    df = pd.read_sql("""
+        SELECT fecha, categoria, descripcion, monto
+        FROM gastos
+        ORDER BY fecha
+    """, conn)
 
-    with pd.ExcelWriter(nombre_archivo) as writer:
-        df.to_excel(writer, sheet_name="Datos", index=False)
+    conn.close()
 
-        resumen_cat = df.groupby("categoria")["monto"].sum()
-        resumen_cat.to_excel(writer, sheet_name="Resumen_Categorias")
+    output = BytesIO()
 
-        resumen_mes = df.groupby("mes")["monto"].sum()
-        resumen_mes.to_excel(writer, sheet_name="Resumen_Mensual")
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Gastos")
 
-    print(f"Archivo exportado como {nombre_archivo}")
+    output.seek(0)
 
+    return output
+
+    
     #Función para gráfica de barras stacked.
 
 
