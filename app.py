@@ -157,7 +157,7 @@ elif menu == "Resumen mensual":
         st.subheader("Detalle por categoría")
         
         opciones = ["Seleccionar categoría"] + list(resumen_cat["categoria"].unique())
-        categoria_sel = st.selectbox("¿De qué categoría quieres ver los gastos?", opciones)
+        categoria_sel = st.selectbox(" ", opciones)
 
         if categoria_sel != "Seleccionar categoría":
             df_detalle = gastos_por_categoria(mes, anio, categoria_sel)
@@ -176,7 +176,7 @@ elif menu == "Resumen mensual":
 elif menu == "Análisis":
     st.header("Análisis de Evolución Financiera")
 
-    anio_analisis = st.selectbox("Seleccione el año para el análisis", [2024, 2025, 2026], index=2)
+    anio_analisis = st.selectbox(" ", [2024, 2025, 2026], index=2)
 
     df_raw = evolucion_mensual(anio_analisis)
 
@@ -299,12 +299,12 @@ elif menu == "Análisis":
         st.subheader("Proyección Financiera")
         
         st.markdown(
-            f"Basado en tu comportamiento histórico de este año, tu ahorro promedio mensual es de "
-            f"**${promedio_ahorro_mensual:,.0f}**. Utiliza el control de abajo para estimar tu patrimonio futuro."
+            f"Ahorro promedio mensual actual: "
+            f"**${promedio_ahorro_mensual:,.0f}**.  "
         )
 
         # Slider interactivo para seleccionar de 1 a 60 meses (5 años)
-        meses_proyeccion = st.slider("Meses a proyectar hacia el futuro:", min_value=1, max_value=60, value=12, step=1)
+        meses_proyeccion = st.slider("Proyección:", min_value=1, max_value=60, value=12, step=1)
 
         # Cálculos predictivos lineales
         nuevo_ahorro_proyectado = promedio_ahorro_mensual * meses_proyeccion
@@ -350,7 +350,7 @@ elif menu == "Análisis":
         )
         
         st.plotly_chart(fig_proyeccion, use_container_width=True)
-
+        
 # --------------------------
 # EXPORTAR
 # --------------------------
@@ -363,7 +363,7 @@ elif menu == "Exportar a Excel":
     st.download_button(
         label="📥 Descargar Excel",
         data=excel,
-        file_name="reporte_finanzas.xlsx",
+        file_name=f"reporte_finanzas_{hoy}.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
