@@ -4,8 +4,17 @@ import calendar
 import pandas as pd
 from datetime import date
 from models import Gasto
-from database import crear_tabla, insertar_gasto
-from analysis import resumen_por_categoria, resumen_mensual, evolucion_mensual, exportar_a_excel, ultimos_gastos, gastos_por_categoria, obtener_sueldo, guardar_sueldo
+from database import crear_tabla, insertar_gasto, insertar_ingreso_extra
+from analysis import (resumen_por_categoria,
+                      resumen_mensual,
+                      evolucion_mensual,
+                      exportar_a_excel,
+                      ultimos_gastos,
+                      gastos_por_categoria,
+                      obtener_sueldo,
+                      guardar_sueldo,
+                      obtener_ingresos_extra)
+
 #Config pag
 
 st.set_page_config(
@@ -75,7 +84,7 @@ if menu == "Agregar gasto":
 
 
 # --------------------------
-# RESUMEN CATEGORÍA
+# RESUMEN MENSUAL
 # --------------------------
 
 elif menu == "Resumen mensual":
@@ -90,6 +99,16 @@ elif menu == "Resumen mensual":
         
         fecha_consulta = date(anio, mes, 1)
         sueldo_actual = obtener_sueldo(fecha_consulta)
+        df_ingresos = obtener_ingresos_extra(mes, anio)
+
+        ingresos_extra = (
+            float(df_ingresos.iloc[0]["total"])
+            if not df_ingresos.empty
+            and df_ingresos.iloc[0]["total"] is not None
+            else 0.0
+        )
+
+        
 
     # Obtención de datos desde la base de datos
     resumen_cat = resumen_por_categoria(mes, anio)
@@ -368,15 +387,59 @@ elif menu == "Exportar a Excel":
     )
 
 # --------------------------
-# Sueldos
+# Ingresos
 # --------------------------    
 
 elif menu == "Sueldos":
 
-    st.header("Actualizar sueldo")
+    st.header("Ingresos")
 
     nuevo_sueldo = st.number_input("Nuevo sueldo", min_value=0.0)
 
     if st.button("Guardar nuevo sueldo"):
         guardar_sueldo(date.today(), nuevo_sueldo)
         st.success("Sueldo actualizado")
+
+    st.divider()
+
+    st.subheader("Agregar ingreso extraordinario")
+
+    with st.form("form_ingreso"):
+
+        fecha = st.date_input(
+            "Fecha",
+            value=date.today(),
+            key="fecha_ingreso"
+        )
+
+        tipo = st.selectbox(
+            "Tipo",
+            [
+                "BONO",
+                "REEMBOLSO",
+                "INTERÉS",
+                "OTRO"
+            ]
+        )
+
+        descripcion = st.text_input("Descripción")
+
+        monto = st.number_input(
+            "Monto",
+            min_value=0.0,
+            step=1000.0,
+            key="monto_ingreso"
+        )
+
+        submitted = st.form_submit_button("Guardar ingreso")
+
+        if submitted:
+
+            insertar_ingreso_extra(
+                fecha,
+                tipo,
+                descripcion,
+                monto
+            )
+
+            st.success("Ingreso guardado correctamente")

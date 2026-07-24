@@ -75,7 +75,8 @@ def exportar_a_excel():
     return output
 
     
-    #Función para gráfica de barras stacked.
+    
+#Función para gráfica de barras stacked.
 
 
 def evolucion_mensual(anio):
@@ -164,3 +165,23 @@ def obtener_sueldo(fecha):
     conn.close()
 
     return resultado[0] if resultado else None
+
+
+#Función para obtener ingresos adicionales
+
+def obtener_ingresos_extra(mes, anio):
+
+    conn = conectar()
+
+    query = """
+        SELECT SUM(monto) AS total
+        FROM ingresos_extra
+        WHERE EXTRACT(MONTH FROM fecha)=%s
+        AND EXTRACT(YEAR FROM fecha)=%s
+    """
+
+    df = pd.read_sql(query,conn,params=(mes,anio))
+
+    conn.close()
+
+    return df

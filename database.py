@@ -28,6 +28,16 @@ def crear_tabla():
         )
     """)
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS ingresos_extra (
+            id SERIAL PRIMARY KEY,
+            fecha DATE NOT NULL,
+            tipo TEXT NOT NULL,
+            descripcion TEXT,
+            monto NUMERIC NOT NULL
+        )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -39,6 +49,20 @@ def insertar_gasto(gasto: Gasto):
         INSERT INTO gastos (fecha, categoria, descripcion, monto)
         VALUES (%s, %s, %s, %s)
     """, (gasto.fecha, gasto.categoria, gasto.descripcion, gasto.monto))
+
+    conn.commit()
+    conn.close()
+
+def insertar_ingreso_extra(fecha, tipo, descripcion, monto):
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO ingresos_extra
+        (fecha, tipo, descripcion, monto)
+        VALUES (%s,%s,%s,%s)
+    """,(fecha,tipo,descripcion,monto))
 
     conn.commit()
     conn.close()
