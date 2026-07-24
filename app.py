@@ -16,6 +16,8 @@ from analysis import (resumen_por_categoria,
                       obtener_ingresos_extra)
 
 #Config pag
+#_
+
 
 st.set_page_config(
     page_title="Money Saver",
