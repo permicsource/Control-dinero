@@ -317,7 +317,7 @@ elif menu == "Análisis":
         
         # Formatear la tabla para mostrar sin decimales y con separador de miles
         df_mostrar = df_analisis.copy()
-        for col in ["Ingresos totales", "Ingresos extra", "Gastos", "Ahorro", "Ahorro Acumulado"]:
+        for col in ["Ingresos totales", "Gastos", "Ahorro", "Ahorro Acumulado"]:
             df_mostrar[col] = df_mostrar[col].apply(lambda x: f"${x:,.0f}")
         df_mostrar["Tasa de Ahorro (%)"] = df_mostrar["Tasa de Ahorro (%)"].apply(lambda x: f"{x:.1f}%")
         
