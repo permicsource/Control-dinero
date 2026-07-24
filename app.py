@@ -63,7 +63,7 @@ if menu == "Agregar gasto":
             ["Comida", "Bencina", "Ropa", "Arriendo", "Salud", "Deporte", "Educación", "Inversión", "Otros", "Transporte", "Ocio"]
         )
         descripcion = st.text_input("Descripción")
-        monto = st.number_input("Monto", min_value=0.0, step=100.0)
+        monto = st.number_input("Monto", min_value=0, step=100, format="%d")
 
         submitted = st.form_submit_button("Guardar gasto")
 
@@ -384,7 +384,7 @@ elif menu == "Ingresos":
 
     st.header("Ingresos")
 
-    nuevo_sueldo = st.number_input("Nuevo sueldo", min_value=0.0)
+    nuevo_sueldo = st.number_input("Nuevo sueldo", min_value=0, format="%d")
 
     if st.button("Guardar nuevo sueldo"):
         guardar_sueldo(date.today(), nuevo_sueldo)
@@ -416,9 +416,10 @@ elif menu == "Ingresos":
 
         monto = st.number_input(
             "Monto",
-            min_value=0.0,
-            step=1000.0,
-            key="monto_ingreso"
+            min_value=0,
+            step=1000,
+            key="monto_ingreso",
+            format="%d"
         )
 
         submitted = st.form_submit_button("Guardar ingreso")
