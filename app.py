@@ -121,7 +121,7 @@ elif menu == "Resumen mensual":
         # 1. Definimos 4 columnas en lugar de 3. 
         # La segunda columna [0.5] servirá de "margen" o aire.
         # [Tabla, Espaciador, Estado, Gráfico]
-        col_tabla, col_espacio, col_status, col_grafico = st.columns([1.1, 0.4, 1, 2.1])
+        col_tabla, col_espacio, col_status, col_grafico = st.columns([1.1, 0.3, 1, 2.1])
 
         with col_tabla:
             st.subheader("Gasto por categoría")
@@ -227,17 +227,30 @@ elif menu == "Análisis":
             fecha_mes = date(anio_analisis, mes_num, 1)
             sueldo_mes = obtener_sueldo(fecha_mes)
             sueldo_mes = float(sueldo_mes) if sueldo_mes else 0.0
-            
-            ahorro_mes = sueldo_mes - gasto_del_mes
+
+            df_ingresos = obtener_ingresos_extra(mes_num, anio_analisis)
+
+            ingresos_extra = (
+                float(df_ingresos.iloc[0]["total"])
+                if not df_ingresos.empty
+                and df_ingresos.iloc[0]["total"] is not None
+                else 0.0
+            )
+
+            total_ingresos = sueldo_mes + ingresos_extra
+
+            ahorro_mes = total_ingresos - gasto_del_mes
             ahorro_acumulado += ahorro_mes
             
             datos_analisis.append({
                 "Mes": meses[mes_num-1],
-                "Ingresos": sueldo_mes,
+                "Ingresos totales": total_ingresos,
+                "Sueldo": sueldo_mes,
                 "Gastos": gasto_del_mes,
+                "Ingresos extra": ingresos_extra,
                 "Ahorro": ahorro_mes,
                 "Ahorro Acumulado": ahorro_acumulado,
-                "Tasa de Ahorro (%)": (ahorro_mes / sueldo_mes * 100) if sueldo_mes > 0 else 0
+                "Tasa de Ahorro (%)": (ahorro_mes / total_ingresos * 100) if total_ingresos > 0 else 0
             })
 
         if not datos_analisis:
@@ -402,7 +415,7 @@ elif menu == "Ingresos":
 
     st.divider()
 
-    st.subheader("Agregar ingreso extraordinario")
+    st.subheader("Agregar ingreso extra")
 
     with st.form("form_ingreso"):
 
@@ -415,10 +428,10 @@ elif menu == "Ingresos":
         tipo = st.selectbox(
             "Tipo",
             [
-                "BONO",
-                "REEMBOLSO",
-                "INTERÉS",
-                "OTRO"
+                "Bono",
+                "Reembolso",
+                "Interés",
+                "Otro"
             ]
         )
 
