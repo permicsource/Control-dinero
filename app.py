@@ -99,6 +99,7 @@ elif menu == "Resumen mensual":
         
         fecha_consulta = date(anio, mes, 1)
         sueldo_actual = obtener_sueldo(fecha_consulta)
+        sueldo_actual_f = float(sueldo_actual)
         df_ingresos = obtener_ingresos_extra(mes, anio)
 
         ingresos_extra = (
@@ -107,8 +108,6 @@ elif menu == "Resumen mensual":
             and df_ingresos.iloc[0]["total"] is not None
             else 0.0
         )
-
-        
 
     # Obtención de datos desde la base de datos
     resumen_cat = resumen_por_categoria(mes, anio)
@@ -137,12 +136,13 @@ elif menu == "Resumen mensual":
         with col_status:
             st.subheader("Estado")
             total_gastado = float(resumen_mes.iloc[0]["total_mes"]) if not resumen_mes.empty and resumen_mes.iloc[0]["total_mes"] else 0.0
+            total_ingresos = sueldo_actual_f + ingresos_extra
+            ahorro_mes = total_ingresos - total_gastado
 
             if sueldo_actual is not None:
-                sueldo_actual_f = float(sueldo_actual)
                 st.metric("Sueldo", f"${sueldo_actual_f:,.0f}")
+                st.metric("Ingresos extra", f"${ingresos_extra:,.0f}")
                 st.metric("Total Gastado", f"${total_gastado:,.0f}")
-                ahorro_mes = sueldo_actual_f - total_gastado
                 st.metric("Ahorro", f"${ahorro_mes:,.0f}", delta=f"${ahorro_mes:,.0f}")
 
         with col_grafico:
@@ -153,8 +153,8 @@ elif menu == "Resumen mensual":
             valores = [float(v) for v in resumen_cat["total"]]
             
             # Cálculo del ahorro para el gráfico
-            if sueldo_actual and float(sueldo_actual) > sum(valores):
-                ahorro_grafico = float(sueldo_actual) - sum(valores)
+            if total_ingresos > sum(valores):
+                ahorro_grafico = total_ingresos - sum(valores)
                 etiquetas.append("Ahorro")
                 valores.append(ahorro_grafico)
             
@@ -390,7 +390,7 @@ elif menu == "Exportar a Excel":
 # Ingresos
 # --------------------------    
 
-elif menu == "Sueldos":
+elif menu == "Ingresos":
 
     st.header("Ingresos")
 
