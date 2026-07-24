@@ -6,7 +6,7 @@
 
 import psycopg2
 import streamlit as st
-from models import Gasto
+from models import Gasto, IngresoExtra
 
 def conectar():
     return psycopg2.connect(
@@ -53,7 +53,7 @@ def insertar_gasto(gasto: Gasto):
     conn.commit()
     conn.close()
 
-def insertar_ingreso_extra(fecha, tipo, descripcion, monto):
+def insertar_ingreso_extra(ingreso: IngresoExtra):
 
     conn = conectar()
     cursor = conn.cursor()
@@ -62,17 +62,13 @@ def insertar_ingreso_extra(fecha, tipo, descripcion, monto):
         INSERT INTO ingresos_extra
         (fecha, tipo, descripcion, monto)
         VALUES (%s,%s,%s,%s)
-    """,(fecha,tipo,descripcion,monto))
+    """,
+    (
+        ingreso.fecha,
+        ingreso.tipo,
+        ingreso.descripcion,
+        ingreso.monto
+    ))
 
     conn.commit()
     conn.close()
-
-#def obtener_todos_los_gastos():
-#    conn = conectar()
-#    cursor = conn.cursor()
-#
-#    cursor.execute("SELECT fecha, categoria, descripcion, monto FROM gastos")
-#    datos = cursor.fetchall()
-#
-#    conn.close()
-#    return datos

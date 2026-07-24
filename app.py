@@ -3,7 +3,7 @@ import datetime
 import calendar
 import pandas as pd
 from datetime import date
-from models import Gasto
+from models import Gasto, IngresoExtra
 from database import crear_tabla, insertar_gasto, insertar_ingreso_extra
 from analysis import (resumen_por_categoria,
                       resumen_mensual,
@@ -426,11 +426,7 @@ elif menu == "Ingresos":
 
         if submitted:
 
-            insertar_ingreso_extra(
-                fecha,
-                tipo,
-                descripcion,
-                monto
-            )
-
+            ingreso = IngresoExtra(fecha, tipo, descripcion, monto)
+            insertar_ingreso_extra(ingreso)
+            
             st.success("Ingreso guardado correctamente")

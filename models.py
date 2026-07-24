@@ -10,3 +10,10 @@ class Gasto:
     descripcion: str
     monto: float
 
+
+@dataclass
+class IngresoExtra:
+    fecha: date
+    tipo: str
+    descripcion: str
+    monto: float
