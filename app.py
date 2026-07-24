@@ -45,7 +45,7 @@ st.title("Money Saver")
 
 menu = st.sidebar.selectbox(
     "Seleccione una opción",
-    ["Agregar gasto", "Resumen mensual", "Análisis", "Exportar a Excel", "Sueldos"]
+    ["Agregar gasto", "Resumen mensual", "Análisis", "Exportar a Excel", "Ingresos"]
 )
 
 # --------------------------
