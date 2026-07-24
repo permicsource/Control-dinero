@@ -359,29 +359,6 @@ elif menu == "Análisis":
             value=f"${patrimonio_total_estimado:,.0f}",
             help="La suma de lo que ya tienes hoy más el ahorro proyectado."
         )
-
-        # Gráfico complementario de la tendencia de la proyección
-        meses_futuros = [f"+{i} mes" if i == 1 else f"+{i} meses" for i in range(1, meses_proyeccion + 1)]
-        valores_crecimiento = [ahorro_acumulado + (promedio_ahorro_mensual * i) for i in range(1, meses_proyeccion + 1)]
-
-        fig_proyeccion = go.Figure()
-        fig_proyeccion.add_trace(go.Scatter(
-            x=meses_futuros,
-            y=valores_crecimiento,
-            mode='lines+markers',
-            line=dict(color='#3498db', width=2, dash='dash'),
-            name="Crecimiento estimado",
-            hovertemplate="Mes futuro: %{x}<br>Total Estimado: %{y:,.0f}<extra></extra>"
-        ))
-        
-        fig_proyeccion.update_layout(
-            title=f"Línea de Tendencia: Crecimiento de tu capital a {meses_proyeccion} meses",
-            height=350,
-            margin=dict(t=40, b=20, l=20, r=20),
-            xaxis=dict(tickangle=-45 if meses_proyeccion > 15 else 0) # Inclina los meses si son demasiados
-        )
-        
-        st.plotly_chart(fig_proyeccion, use_container_width=True)
         
 # --------------------------
 # EXPORTAR
