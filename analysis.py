@@ -1,7 +1,6 @@
 import pandas as pd
 from database import conectar
 import psycopg2
-from database import conectar
 from io import BytesIO
 
 
@@ -185,3 +184,27 @@ def obtener_ingresos_extra(mes, anio):
     conn.close()
 
     return df
+
+def obtener_distribucion(periodo):
+
+    conn = conectar()
+
+    query = """
+        SELECT categoria, monto
+        FROM distribucion_ahorro
+        WHERE periodo = %s
+        ORDER BY categoria;
+    """
+
+    df = pd.read_sql(query, conn, params=(periodo,))
+
+    conn.close()
+
+    return df
+
+
+def periodo_distribuido(periodo):
+
+    df = obtener_distribucion(periodo)
+
+    return not df.empty

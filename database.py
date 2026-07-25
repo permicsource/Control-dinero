@@ -38,6 +38,16 @@ def crear_tabla():
         )
     """)
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS distribucion_ahorro (
+            id SERIAL PRIMARY KEY,
+            periodo DATE NOT NULL,
+            categoria TEXT NOT NULL,
+            monto NUMERIC NOT NULL,
+            fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -72,3 +82,36 @@ def insertar_ingreso_extra(ingreso: IngresoExtra):
 
     conn.commit()
     conn.close()
+
+
+def insertar_distribucion(periodo, categoria, monto):
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO distribucion_ahorro
+        (periodo, categoria, monto)
+        VALUES (%s,%s,%s)
+    """, (periodo, categoria, monto))
+
+    conn.commit()
+    conn.close()
+
+
+def periodo_distribuido(periodo):
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM distribucion_ahorro
+        WHERE periodo = %s
+    """, (periodo,))
+
+    existe = cursor.fetchone()[0]
+
+    conn.close()
+
+    return existe > 0
