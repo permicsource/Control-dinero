@@ -1,4 +1,5 @@
 import pandas as pd
+from datetime import date
 from database import conectar
 import psycopg2
 from io import BytesIO
@@ -185,6 +186,9 @@ def obtener_ingresos_extra(mes, anio):
 
     return df
 
+
+# Funcion para obtener la distribución de ahorro de un mes pasado
+
 def obtener_distribucion(periodo):
 
     conn = conectar()
@@ -203,8 +207,35 @@ def obtener_distribucion(periodo):
     return df
 
 
+# Funcion para comprobar que el ahorro del mes ya fue distribuido
 def periodo_distribuido(periodo):
 
     df = obtener_distribucion(periodo)
 
     return not df.empty
+
+
+#Funcion para calcular el ahorro del mes (balance positivo) Devuelve ahorro, ingresos y gastos
+
+def obtener_ahorro_mes(mes, anio):
+
+    fecha = date(anio, mes, 1)
+
+    sueldo = obtener_sueldo(fecha)
+
+    ingresos_extra = obtener_ingresos_extra(mes, anio)
+    gastos_mes = resumen_mensual(mes, anio)
+
+    total_ingresos_extra = ingresos_extra.loc[0, "total"] if not ingresos_extra.empty else 0
+    total_gastos = gastos_mes.loc[0, "total_mes"] if not gastos_mes.empty else 0
+
+    if pd.isna(total_ingresos_extra):
+        total_ingresos_extra = 0
+
+    if pd.isna(total_gastos):
+        total_gastos = 0
+
+    ingresos = sueldo + total_ingresos_extra
+    ahorro = ingresos - total_gastos
+
+    return ingresos, total_gastos, ahorro

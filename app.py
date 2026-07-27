@@ -15,7 +15,8 @@ from analysis import (resumen_por_categoria,
                       guardar_sueldo,
                       obtener_ingresos_extra,
                       obtener_distribucion,
-                      periodo_distribuido)
+                      periodo_distribuido,
+                      obtener_ahorro_mes)
 
 #Config pag
 #_
@@ -396,7 +397,31 @@ elif menu == "Distribución ahorro":
 
         st.stop()
     
-        
+    ingresos, gastos, ahorro = obtener_ahorro_mes(
+        mes_numero,
+        anio
+    )
+
+    st.subheader("Resumen del mes")
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric(
+        "Ingresos",
+        f"${ingresos:,.0f}"
+    )
+
+    col2.metric(
+        "Gastos",
+        f"${gastos:,.0f}"
+    )
+
+    col3.metric(
+        "Ahorro",
+        f"${ahorro:,.0f}"
+    )
+
+
 # --------------------------
 # EXPORTAR
 # --------------------------
