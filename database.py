@@ -98,20 +98,3 @@ def insertar_distribucion(periodo, categoria, monto):
     conn.commit()
     conn.close()
 
-
-def periodo_distribuido(periodo):
-
-    conn = conectar()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        SELECT COUNT(*)
-        FROM distribucion_ahorro
-        WHERE periodo = %s
-    """, (periodo,))
-
-    existe = cursor.fetchone()[0]
-
-    conn.close()
-
-    return existe > 0
