@@ -13,7 +13,9 @@ from analysis import (resumen_por_categoria,
                       gastos_por_categoria,
                       obtener_sueldo,
                       guardar_sueldo,
-                      obtener_ingresos_extra)
+                      obtener_ingresos_extra,
+                      periodo_distribuido,
+                      obtener_distribucion)
 
 #Config pag
 #_
@@ -47,7 +49,7 @@ st.title("Money Saver")
 
 menu = st.sidebar.selectbox(
     "Seleccione una opción",
-    ["Agregar gasto", "Resumen mensual", "Análisis", "Exportar a Excel", "Ingresos"]
+    ["Agregar gasto", "Resumen mensual", "Análisis", "Exportar a Excel", "Ingresos", "Distribución ahorro"]
 )
 
 # --------------------------
@@ -361,6 +363,39 @@ elif menu == "Análisis":
             value=f"${patrimonio_total_estimado:,.0f}",
             help="La suma de lo que ya tienes hoy más el ahorro proyectado."
         )
+# --------------------------
+# DISTRIBUCIÓN DE AHORRO
+# --------------------------
+
+elif menu == "Distribución ahorro":
+
+    st.header("Distribución ahorro")
+
+    st.subheader("Seleccionar período")
+
+    anio = st.selectbox(
+        "Año",
+        [2026, 2027],
+        index=0
+    )
+
+    mes = st.selectbox("Mes", meses)
+
+    mes_numero = meses.index(mes) + 1
+
+    periodo = date(anio, mes_numero, 1)
+
+    if periodo_distribuido(periodo):
+
+        st.success("Este mes ya fue distribuido.")
+
+        st.dataframe(
+            obtener_distribucion(periodo),
+            use_container_width=True
+        )
+
+        st.stop()
+    
         
 # --------------------------
 # EXPORTAR
