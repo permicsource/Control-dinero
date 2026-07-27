@@ -14,8 +14,8 @@ from analysis import (resumen_por_categoria,
                       obtener_sueldo,
                       guardar_sueldo,
                       obtener_ingresos_extra,
-                      periodo_distribuido,
-                      obtener_distribucion)
+                      obtener_distribucion,
+                      periodo_distribuido)
 
 #Config pag
 #_
