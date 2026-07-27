@@ -382,7 +382,7 @@ elif menu == "Distribución ahorro":
 
     mes = st.selectbox("Mes", meses)
 
-    mes_numero = meses.index(mes) + 1
+    mes_numero = float(meses.index(mes) + 1)
 
     periodo = date(anio, mes_numero, 1)
 
@@ -396,11 +396,10 @@ elif menu == "Distribución ahorro":
         )
 
         st.stop()
+        
+    anio = float(anio)
     
-    ingresos, gastos, ahorro = obtener_ahorro_mes(
-        mes_numero,
-        anio
-    )
+    ingresos, gastos, ahorro = obtener_ahorro_mes(mes_numero, anio)
 
     st.subheader("Resumen del mes")
 
@@ -420,6 +419,11 @@ elif menu == "Distribución ahorro":
         "Ahorro",
         f"${ahorro:,.0f}"
     )
+
+    categorias = ["Largo plazo",
+                  "Bicicleta",
+                  "Botas Montaña",
+                  "Reloj"]
 
 
 # --------------------------
