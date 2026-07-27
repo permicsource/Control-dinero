@@ -397,9 +397,7 @@ elif menu == "Distribución ahorro":
 
         st.stop()
 
-    anio = float(anio)
-    mes_numero = float(mes_numero)
-    
+
     ingresos, gastos, ahorro = obtener_ahorro_mes(mes_numero, anio)
 
     st.subheader("Resumen del mes")
