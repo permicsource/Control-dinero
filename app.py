@@ -441,47 +441,36 @@ elif menu == "Distribución ahorro":
                 key=f"dist_{categoria}"
             )
 
-        comprobar = st.form_submit_button("Comprobar distribución")
+        guardar = st.form_submit_button("Validar y guardar distribución")
 
-        if comprobar:
+    if guardar:
 
-            total_distribuido = sum(distribucion.values())
+        total_distribuido = sum(distribucion.values())
 
-            st.metric(
-                "Total distribuido",
-                f"${total_distribuido:,.0f}"
+        diferencia = ahorro - total_distribuido
+
+        if diferencia > 0:
+
+            st.warning(
+                f"Faltan ${diferencia:,.0f} por distribuir."
             )
 
-            diferencia = ahorro - total_distribuido
+        elif diferencia < 0:
 
-            if diferencia > 0:
+            st.error(
+                f"Te excediste en ${abs(diferencia):,.0f}."
+            )
 
-                st.warning(
-                    f"Faltan ${diferencia:,.0f} por distribuir."
-                )
+        else:
 
-            elif diferencia < 0:
+            insertar_distribucion(
+                periodo,
+                distribucion
+            )
 
-                st.error(
-                    f"Te excediste en ${abs(diferencia):,.0f}."
-                )
+            st.success("Distribución guardada correctamente.")
 
-            else:
-
-                st.success("Distribución correcta.")
-
-                insertar = st.button("Guardar distribución")
-
-                if insertar:
-
-                    insertar_distribucion(
-                        periodo,
-                        distribucion
-                    )
-
-                st.success("Distribución guardada correctamente.")
-
-                st.rerun()
+            st.rerun()
 
 # --------------------------
 # EXPORTAR
