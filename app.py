@@ -474,15 +474,10 @@ elif menu == "Distribución ahorro":
 
     if guardar:
 
-        for categoria, monto in distribucion.items():
-
-            if monto > 0:
-
-                insertar_distribucion(
-                    periodo,
-                    categoria,
-                    monto
-                )
+        insertar_distribucion(
+            periodo,
+            distribucion
+        )
 
         st.success("Distribución guardada correctamente.")
 
