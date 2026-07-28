@@ -215,27 +215,96 @@ def periodo_distribuido(periodo):
     return not df.empty
 
 
-#Funcion para calcular el ahorro del mes (balance positivo) Devuelve ahorro, ingresos y gastos
+# DE AQUI PARA ABAJO SE AÑADEN FUNCIONES QUE DEVUELVEN FLOATS Y NO DF'S
+#AHORA SOLO LAS ESTOY USANDO EN EL MODULO DE DISTRIBUCION DE AHORRO
+#ALGUNAS FUNCIONES TIENEN EL MISMO NOMBRE QUE LAS QUE DEVUELVE DF, ACA TODAS TERMINAN EN _
+#LUEGO REEMPLAZAR EN EL RESTO DE MODULOS PARA QUE SEA MAS SIMPLE
+#ACA SE DEBERIAN HACER TODOS LOS CALCULOS, Y NO CALCULAR NADA EN APP.PY
 
-def obtener_ahorro_mes(mes, anio):
+
+#Devuelve float con el sueldo vigente se ese mes
+
+def obtener_sueldo_(fecha):
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    query = """
+        SELECT sueldo
+        FROM sueldos
+        WHERE fecha_inicio <= %s
+        ORDER BY fecha_inicio DESC
+        LIMIT 1;
+    """
+
+    cursor.execute(query, (fecha,))
+    resultado = cursor.fetchone()
+
+    conn.close()
+
+    if resultado is None:
+        return 0.0
+
+    return float(resultado[0])
+
+
+
+#Devuelve float con ingresos extra del mes
+
+def obtener_ingresos_extra_(mes, anio):
+
+    conn = conectar()
+
+    query = """
+        SELECT SUM(monto) AS total
+        FROM ingresos_extra
+        WHERE EXTRACT(MONTH FROM fecha) = %s
+        AND EXTRACT(YEAR FROM fecha) = %s
+    """
+
+    df = pd.read_sql(query, conn, params=(mes, anio))
+
+    conn.close()
+
+    if df.empty or pd.isna(df.loc[0, "total"]):
+        return 0.0
+
+    return float(df.loc[0, "total"])
+
+#Devuelve gastos del mes para el periodo seleccionado
+
+def obtener_gastos_mes_(mes, anio):
+
+    conn = conectar()
+
+    query = """
+        SELECT SUM(monto) AS total
+        FROM gastos
+        WHERE EXTRACT(MONTH FROM fecha) = %s
+        AND EXTRACT(YEAR FROM fecha) = %s
+    """
+
+    df = pd.read_sql(query, conn, params=(mes, anio))
+
+    conn.close()
+
+    if df.empty or pd.isna(df.loc[0, "total"]):
+        return 0.0
+
+    return float(df.loc[0, "total"])
+
+
+# Calcula el ahorro del mes con las funciones anteriores, devuelve float 
+
+def obtener_ahorro_mes_(mes, anio):
 
     fecha = date(anio, mes, 1)
 
-    sueldo = obtener_sueldo(fecha)
+    sueldo = obtener_sueldo_(fecha)
+    ingresos_extra = obtener_ingresos_extra_(mes, anio)
+    gastos = obtener_gastos_mes_(mes, anio)
 
-    ingresos_extra = obtener_ingresos_extra(mes, anio)
-    gastos_mes = resumen_mensual(mes, anio)
+    ingresos = sueldo + ingresos_extra
+    ahorro = ingresos - gastos
 
-    total_ingresos_extra = ingresos_extra.loc[0, "total"] if not ingresos_extra.empty else 0
-    total_gastos = gastos_mes.loc[0, "total_mes"] if not gastos_mes.empty else 0
-
-    if pd.isna(total_ingresos_extra):
-        total_ingresos_extra = 0
-
-    if pd.isna(total_gastos):
-        total_gastos = 0
-
-    ingresos = sueldo + total_ingresos_extra
-    ahorro = ingresos - total_gastos
-
-    return ingresos, total_gastos, ahorro
+    return ingresos, gastos, ahorro

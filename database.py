@@ -84,17 +84,31 @@ def insertar_ingreso_extra(ingreso: IngresoExtra):
     conn.close()
 
 
-def insertar_distribucion(periodo, categoria, monto):
+def insertar_distribucion(periodo, distribucion):
 
     conn = conectar()
     cursor = conn.cursor()
 
-    cursor.execute("""
-        INSERT INTO distribucion_ahorro
-        (periodo, categoria, monto)
-        VALUES (%s,%s,%s)
-    """, (periodo, categoria, monto))
+    try:
 
-    conn.commit()
-    conn.close()
+        for categoria, monto in distribucion.items():
+
+            if monto > 0:
+
+                cursor.execute("""
+                    INSERT INTO distribucion_ahorro
+                    (periodo, categoria, monto)
+                    VALUES (%s, %s, %s)
+                """, (periodo, categoria, monto))
+
+        conn.commit()
+
+    except Exception:
+
+        conn.rollback()
+        raise
+
+    finally:
+
+        conn.close()
 

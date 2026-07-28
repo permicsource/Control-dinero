@@ -4,7 +4,7 @@ import calendar
 import pandas as pd
 from datetime import date
 from models import Gasto, IngresoExtra
-from database import crear_tabla, insertar_gasto, insertar_ingreso_extra
+from database import crear_tabla, insertar_gasto, insertar_ingreso_extra, insertar_distribucion
 from analysis import (resumen_por_categoria,
                       resumen_mensual,
                       evolucion_mensual,
@@ -16,7 +16,8 @@ from analysis import (resumen_por_categoria,
                       obtener_ingresos_extra,
                       obtener_distribucion,
                       periodo_distribuido,
-                      obtener_ahorro_mes)
+                      obtener_ahorro_mes_
+                      )
 
 #Config pag
 #_
@@ -397,33 +398,92 @@ elif menu == "Distribución ahorro":
 
         st.stop()
 
-
-    ingresos, gastos, ahorro = obtener_ahorro_mes(mes_numero, anio)
+    ingresos, gastos, ahorro = obtener_ahorro_mes_(mes_numero, anio)
 
     st.subheader("Resumen del mes")
 
     col1, col2, col3 = st.columns(3)
 
-    col1.metric(
-        "Ingresos",
-        f"${ingresos:,.0f}"
+    col1.metric("Ingresos", f"${ingresos:,.0f}")
+    col2.metric("Gastos", f"${gastos:,.0f}")
+    col3.metric("Ahorro disponible", f"${ahorro:,.0f}")
+
+    if ahorro <= 0:
+
+        st.warning("No existe ahorro disponible para distribuir.")
+
+        st.stop()
+
+    categorias = [
+        "Largo plazo",
+        "Fondo emergencia",
+        "Bicicleta",
+        "Botas Montaña",
+        "Magister"
+    ]
+
+    st.subheader("Distribución del ahorro")
+
+    distribucion = {}
+
+    for categoria in categorias:
+
+        monto = st.number_input(
+            categoria,
+            min_value=0,
+            value=0,
+            step=1000,
+            key=f"dist_{categoria}"
+        )
+
+        distribucion[categoria] = monto
+
+    total_distribuido = sum(distribucion.values())
+
+    st.metric(
+        "Total distribuido",
+        f"${total_distribuido:,.0f}"
     )
 
-    col2.metric(
-        "Gastos",
-        f"${gastos:,.0f}"
+    diferencia = ahorro - total_distribuido
+
+    if diferencia > 0:
+
+        st.warning(
+            f"Faltan ${diferencia:,.0f} por distribuir."
+        )
+
+    elif diferencia < 0:
+
+        st.error(
+            f"Te excediste en ${abs(diferencia):,.0f}."
+        )
+
+    else:
+
+        st.success("Distribución completa.")
+
+
+    guardar = st.button(
+        "Guardar distribución",
+        disabled=(diferencia != 0)
     )
 
-    col3.metric(
-        "Ahorro",
-        f"${ahorro:,.0f}"
-    )
+    if guardar:
 
-    categorias = ["Largo plazo",
-                  "Bicicleta",
-                  "Botas Montaña",
-                  "Reloj"]
+        for categoria, monto in distribucion.items():
 
+            if monto > 0:
+
+                insertar_distribucion(
+                    periodo,
+                    categoria,
+                    monto
+                )
+
+        st.success("Distribución guardada correctamente.")
+
+        st.rerun()
 
 # --------------------------
 # EXPORTAR
