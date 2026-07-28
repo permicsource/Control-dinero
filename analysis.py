@@ -1,6 +1,6 @@
 import pandas as pd
-from datetime import date
-from database import conectar
+from datetime import date, timedelta
+from database import conectar, insertar_historial_inversion
 import psycopg2
 from io import BytesIO
 
@@ -308,3 +308,288 @@ def obtener_ahorro_mes_(mes, anio):
     ahorro = ingresos - gastos
 
     return ingresos, gastos, ahorro
+
+# Obtiene el capital acumulado hasta la fecha de una categoría
+# Por ahora no se está usando.
+
+def obtener_capital_categoria(categoria, fecha):
+
+    conn = conectar()
+
+    query = """
+        SELECT SUM(monto) AS capital
+        FROM distribucion_ahorro
+        WHERE categoria = %s
+        AND DATE(fecha_registro) <= %s
+    """
+
+    df = pd.read_sql(
+        query,
+        conn,
+        params=(categoria, fecha)
+    )
+
+    conn.close()
+
+    if df.empty or pd.isna(df.loc[0, "capital"]):
+        return 0.0
+
+    return float(df.loc[0, "capital"])
+
+# Lee la tabla objetivos
+
+def obtener_objetivos():
+
+    conn = conectar()
+
+    query = """
+        SELECT categoria,
+               tipo,
+               meta,
+               tasa_interes
+        FROM objetivos
+        ORDER BY categoria
+    """
+
+    df = pd.read_sql(query, conn)
+
+    conn.close()
+
+    return df
+
+#Obtiene fotografía del dia anterior
+
+def obtener_historial_anterior(categoria, fecha):
+
+    conn = conectar()
+
+    query = """
+        SELECT
+            fecha,
+            capital,
+            rentabilidad,
+            valor_total
+        FROM historial_inversiones
+        WHERE categoria = %s
+        AND fecha < %s
+        ORDER BY fecha DESC
+        LIMIT 1
+    """
+
+    df = pd.read_sql(
+        query,
+        conn,
+        params=(categoria, fecha)
+    )
+
+    conn.close()
+
+    if df.empty:
+        return None
+
+    return df.iloc[0].to_dict()
+
+#Calcula liquidez según la foto del dia anterior
+
+def calcular_liquidez(objetivo, capital_actual, fecha):
+
+    categoria = objetivo["categoria"]
+    tasa_anual = float(objetivo["tasa_interes"])
+
+    historial = obtener_historial_anterior(
+        categoria,
+        fecha
+    )
+
+    # Primera fotografía
+    if historial is None:
+
+        return {
+            "categoria": categoria,
+            "capital_aportado": capital_actual,
+            "rentabilidad": 0.0,
+            "valor_total": capital_actual
+        }
+
+    capital_anterior = float(historial["capital"])
+    rentabilidad_anterior = float(historial["rentabilidad"])
+    valor_anterior = float(historial["valor_total"])
+
+    aporte_dia = capital_actual - capital_anterior
+
+    tasa_diaria = (tasa_anual / 100) / 365
+
+    interes_dia = valor_anterior * tasa_diaria
+
+    rentabilidad = rentabilidad_anterior + interes_dia
+
+    valor_total = valor_anterior + interes_dia + aporte_dia
+
+    return {
+        "categoria": categoria,
+        "capital_aportado": capital_actual,
+        "rentabilidad": rentabilidad,
+        "valor_total": valor_total
+    }
+
+
+def actualizar_historial_inversiones(fecha):
+
+    objetivos = obtener_objetivos()
+
+    for _, objetivo in objetivos.iterrows():
+
+        if objetivo["tipo"] == "Liquidez":
+
+            resultado = calcular_liquidez(
+                objetivo,
+                fecha
+            )
+
+        else:
+
+            # Se implementará cuando agreguemos ETFs
+            continue
+
+        insertar_historial_inversion(
+            fecha=fecha,
+            categoria=resultado["categoria"],
+            capital=resultado["capital_aportado"],
+            rentabilidad=resultado["rentabilidad"],
+            valor_total=resultado["valor_total"]
+        )
+
+
+def obtener_ultima_fecha_historial():
+
+    conn = conectar()
+
+    query = """
+        SELECT MAX(fecha) AS ultima_fecha
+        FROM historial_inversiones
+    """
+
+    df = pd.read_sql(query, conn)
+
+    conn.close()
+
+    if pd.isna(df.loc[0, "ultima_fecha"]):
+        return None
+
+    return df.loc[0, "ultima_fecha"]
+
+def obtener_primer_periodo_distribucion():
+
+    conn = conectar()
+
+    query = """
+        SELECT MIN(periodo) AS primer_periodo
+        FROM distribucion_ahorro
+    """
+
+    df = pd.read_sql(query, conn)
+
+    conn.close()
+
+    if pd.isna(df.loc[0, "primer_periodo"]):
+        return None
+
+    return df.loc[0, "primer_periodo"]
+
+def obtener_primer_aporte():
+
+    conn = conectar()
+
+    query = """
+        SELECT MIN(DATE(fecha_registro)) AS primer_aporte
+        FROM distribucion_ahorro
+    """
+
+    df = pd.read_sql(query, conn)
+
+    conn.close()
+
+    if pd.isna(df.loc[0, "primer_aporte"]):
+        return None
+
+    return df.loc[0, "primer_aporte"]
+
+def obtener_capitales(fecha):
+
+    conn = conectar()
+
+    query = """
+        SELECT
+            categoria,
+            SUM(monto) AS capital
+        FROM distribucion_ahorro
+        WHERE DATE(fecha_registro) <= %s
+        GROUP BY categoria
+    """
+
+    df = pd.read_sql(query, conn, params=(fecha,))
+
+    conn.close()
+
+    capitales = {}
+
+    for _, fila in df.iterrows():
+
+        capitales[fila["categoria"]] = float(fila["capital"])
+
+    return capitales
+
+#MOTOR V6
+
+def actualizar_historial_inversiones():
+
+    ultima_fecha = obtener_ultima_fecha_historial()
+
+    if ultima_fecha is None:
+
+        fecha_actualizar = obtener_primer_aporte()
+
+    else:
+
+        fecha_actualizar = ultima_fecha + timedelta(days=1)
+
+    if fecha_actualizar is None:
+        return
+
+    hoy = date.today()
+
+    while fecha_actualizar <= hoy:
+
+        objetivos = obtener_objetivos()
+
+        # Una sola consulta SQL para todas las categorías de este día
+        capitales = obtener_capitales(fecha_actualizar)
+
+        for _, objetivo in objetivos.iterrows():
+
+            categoria = objetivo["categoria"]
+
+            capital_actual = capitales.get(categoria, 0.0)
+
+            if objetivo["tipo"] == "Liquidez":
+
+                resultado = calcular_liquidez(
+                    objetivo,
+                    capital_actual,
+                    fecha_actualizar
+                )
+
+            else:
+
+                # Se implementará cuando agreguemos ETFs
+                continue
+
+            insertar_historial_inversion(
+                fecha=fecha_actualizar,
+                categoria=resultado["categoria"],
+                capital=resultado["capital_aportado"],
+                rentabilidad=resultado["rentabilidad"],
+                valor_total=resultado["valor_total"]
+            )
+
+        fecha_actualizar += timedelta(days=1)

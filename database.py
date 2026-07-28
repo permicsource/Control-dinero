@@ -48,6 +48,28 @@ def crear_tabla():
         )
     """)
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS objetivos (
+            categoria TEXT PRIMARY KEY,
+            tipo TEXT NOT NULL,
+            meta NUMERIC NOT NULL,
+            tasa_interes NUMERIC NOT NULL
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS historial_inversiones (
+            id SERIAL PRIMARY KEY,
+            fecha DATE NOT NULL,
+            categoria TEXT NOT NULL,
+            capital NUMERIC NOT NULL,
+            rentabilidad NUMERIC NOT NULL,
+            valor_total NUMERIC NOT NULL,
+
+            UNIQUE(fecha, categoria)
+        )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -112,3 +134,41 @@ def insertar_distribucion(periodo, distribucion):
 
         conn.close()
 
+
+def insertar_historial_inversion(
+    fecha,
+    categoria,
+    capital,
+    rentabilidad,
+    valor_total
+):
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO historial_inversiones
+        (
+            fecha,
+            categoria,
+            capital,
+            rentabilidad,
+            valor_total
+        )
+        VALUES (%s,%s,%s,%s,%s)
+        ON CONFLICT (fecha,categoria)
+        DO UPDATE SET
+
+            capital = EXCLUDED.capital,
+            rentabilidad = EXCLUDED.rentabilidad,
+            valor_total = EXCLUDED.valor_total
+    """, (
+        fecha,
+        categoria,
+        capital,
+        rentabilidad,
+        valor_total
+    ))
+
+    conn.commit()
+    conn.close()
