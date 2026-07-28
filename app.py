@@ -427,61 +427,61 @@ elif menu == "Distribución ahorro":
 
     st.subheader("Distribución del ahorro")
 
-    distribucion = {}
+    with st.form("form_distribucion"):
 
-    for categoria in categorias:
+        distribucion = {}
 
-        monto = st.number_input(
-            categoria,
-            min_value=0,
-            value=0,
-            step=1000,
-            key=f"dist_{categoria}"
-        )
+        for categoria in categorias:
 
-        distribucion[categoria] = monto
+            distribucion[categoria] = st.number_input(
+                categoria,
+                min_value=0,
+                value=0,
+                step=1000,
+                key=f"dist_{categoria}"
+            )
 
-    total_distribuido = sum(distribucion.values())
+        comprobar = st.form_submit_button("Comprobar distribución")
 
-    st.metric(
-        "Total distribuido",
-        f"${total_distribuido:,.0f}"
-    )
+        if comprobar:
 
-    diferencia = ahorro - total_distribuido
+            total_distribuido = sum(distribucion.values())
 
-    if diferencia > 0:
+            st.metric(
+                "Total distribuido",
+                f"${total_distribuido:,.0f}"
+            )
 
-        st.warning(
-            f"Faltan ${diferencia:,.0f} por distribuir."
-        )
+            diferencia = ahorro - total_distribuido
 
-    elif diferencia < 0:
+            if diferencia > 0:
 
-        st.error(
-            f"Te excediste en ${abs(diferencia):,.0f}."
-        )
+                st.warning(
+                    f"Faltan ${diferencia:,.0f} por distribuir."
+                )
 
-    else:
+            elif diferencia < 0:
 
-        st.success("Distribución completa.")
+                st.error(
+                    f"Te excediste en ${abs(diferencia):,.0f}."
+                )
 
+            else:
 
-    guardar = st.button(
-        "Guardar distribución",
-        disabled=(diferencia != 0)
-    )
+                st.success("Distribución correcta.")
 
-    if guardar:
+                insertar = st.button("Guardar distribución")
 
-        insertar_distribucion(
-            periodo,
-            distribucion
-        )
+                if insertar:
 
-        st.success("Distribución guardada correctamente.")
+                    insertar_distribucion(
+                        periodo,
+                        distribucion
+                    )
 
-        st.rerun()
+                st.success("Distribución guardada correctamente.")
+
+                st.rerun()
 
 # --------------------------
 # EXPORTAR
