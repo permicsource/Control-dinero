@@ -16,6 +16,9 @@ from analysis import (resumen_por_categoria,
                       obtener_ingresos_extra,
                       obtener_distribucion,
                       periodo_distribuido,
+                      obtener_sueldo_,
+                      obtener_ingresos_extra_,
+                      obtener_gastos_mes_,
                       obtener_ahorro_mes_
                       )
 
