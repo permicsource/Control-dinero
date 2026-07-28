@@ -309,10 +309,18 @@ def obtener_ahorro_mes_(mes, anio):
 
     return ingresos, gastos, ahorro
 
+#
+#
+#
+#
+#
+#
+#
+#
 # Obtiene el capital acumulado hasta la fecha de una categoría
 # Por ahora no se está usando.
 
-def obtener_capital_categoria(categoria, fecha):
+#def obtener_capital_categoria(categoria, fecha):
 
     conn = conectar()
 
@@ -336,7 +344,8 @@ def obtener_capital_categoria(categoria, fecha):
 
     return float(df.loc[0, "capital"])
 
-# Lee la tabla objetivos
+# Lee la tabla objetivos y devuelve un df con las columnas del query
+#Es la unica funcion que devuelve un df
 
 def obtener_objetivos():
 
@@ -357,7 +366,8 @@ def obtener_objetivos():
 
     return df
 
-#Obtiene fotografía del dia anterior
+# Lee historial_inversiones y devuelve un diccionario con la ultima fotografía disponible
+#para una categoria
 
 def obtener_historial_anterior(categoria, fecha):
 
@@ -389,7 +399,8 @@ def obtener_historial_anterior(categoria, fecha):
 
     return df.iloc[0].to_dict()
 
-#Calcula liquidez según la foto del dia anterior
+#Calcula liquidez según la foto del dia anterior recibe el objetivo (categoria mas taza), el capital actual y calcula la rentabilidad
+#solo calcula no guarda nada.
 
 def calcular_liquidez(objetivo, capital_actual, fecha):
 
@@ -432,33 +443,8 @@ def calcular_liquidez(objetivo, capital_actual, fecha):
         "valor_total": valor_total
     }
 
-
-def actualizar_historial_inversiones(fecha):
-
-    objetivos = obtener_objetivos()
-
-    for _, objetivo in objetivos.iterrows():
-
-        if objetivo["tipo"] == "Liquidez":
-
-            resultado = calcular_liquidez(
-                objetivo,
-                fecha
-            )
-
-        else:
-
-            # Se implementará cuando agreguemos ETFs
-            continue
-
-        insertar_historial_inversion(
-            fecha=fecha,
-            categoria=resultado["categoria"],
-            capital=resultado["capital_aportado"],
-            rentabilidad=resultado["rentabilidad"],
-            valor_total=resultado["valor_total"]
-        )
-
+# Lee historial inversiones y devuelve el último dia que proceso el motor (ultimo dia que entre a la app)
+#para calcular los intereses de los dias que no se calcularon.
 
 def obtener_ultima_fecha_historial():
 
@@ -478,6 +464,7 @@ def obtener_ultima_fecha_historial():
 
     return df.loc[0, "ultima_fecha"]
 
+
 def obtener_primer_periodo_distribucion():
 
     conn = conectar()
@@ -496,6 +483,10 @@ def obtener_primer_periodo_distribucion():
 
     return df.loc[0, "primer_periodo"]
 
+
+# Lee distribucion_ahorro, y devuelve la fecha donde comenzó la inversión
+#si no hay nada devuelve None
+
 def obtener_primer_aporte():
 
     conn = conectar()
@@ -513,6 +504,11 @@ def obtener_primer_aporte():
         return None
 
     return df.loc[0, "primer_aporte"]
+
+
+
+# Lee distribucion_ahorro y devuelve un diccionario con el total de los aportes hasta la fecha para cada categoria
+# solo aportes no incluye intereses
 
 def obtener_capitales(fecha):
 
@@ -539,8 +535,10 @@ def obtener_capitales(fecha):
 
     return capitales
 
-#MOTOR V6
 
+#MOTOR V6
+# No calcula solo llama al resto de las funciones
+#
 def actualizar_historial_inversiones():
 
     ultima_fecha = obtener_ultima_fecha_historial()
