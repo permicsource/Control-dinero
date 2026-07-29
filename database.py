@@ -8,6 +8,17 @@ import psycopg2
 import streamlit as st
 from models import Gasto, IngresoExtra
 
+
+OBJETIVOS = [
+    ("Fondo emergencia", "Liquidez", 1000000, 6),
+    ("Bicicleta", "Liquidez", 1500000, 6),
+    ("Computador", "Liquidez", 1000000, 6),
+    ("Magister", "Liquidez", 5000000, 6),
+    ("Largo plazo", "Inversión", 0, 0),
+]
+
+CATEGORIAS = [objetivo[0] for objetivo in OBJETIVOS]
+
 def conectar():
     return psycopg2.connect(
         st.secrets["DATABASE_URL"],
@@ -72,6 +83,9 @@ def crear_tabla():
 
     conn.commit()
     conn.close()
+
+    sincronizar_objetivos()
+
 
 def insertar_gasto(gasto: Gasto):
     conn = conectar()
@@ -169,6 +183,32 @@ def insertar_historial_inversion(
         rentabilidad,
         valor_total
     ))
+
+    conn.commit()
+    conn.close()
+
+
+def sincronizar_objetivos():
+
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.executemany("""
+
+        INSERT INTO objetivos
+        (categoria, tipo, meta, tasa_interes)
+
+        VALUES (%s, %s, %s, %s)
+
+        ON CONFLICT (categoria)
+
+        DO UPDATE SET
+
+            tipo = EXCLUDED.tipo,
+            meta = EXCLUDED.meta,
+            tasa_interes = EXCLUDED.tasa_interes;
+
+    """, OBJETIVOS)
 
     conn.commit()
     conn.close()

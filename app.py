@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import date
 import plotly.graph_objects as go
 from models import Gasto, IngresoExtra
-from database import (crear_tabla, insertar_gasto, insertar_ingreso_extra, insertar_distribucion, insertar_historial_inversion)
+from database import (crear_tabla, insertar_gasto, insertar_ingreso_extra, insertar_distribucion, insertar_historial_inversion, CATEGORIAS)
 
 from analysis import (resumen_por_categoria,
                       resumen_mensual,
@@ -433,13 +433,7 @@ elif menu == "Distribución ahorro":
 
         st.stop()
 
-    categorias = [
-        "Largo plazo",
-        "Fondo emergencia",
-        "Bicicleta",
-        "Botas Montaña",
-        "Magister"
-    ]
+    categorias = CATEGORIAS
 
     st.subheader("Distribución del ahorro")
 
