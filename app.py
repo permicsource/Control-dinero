@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import date
 import plotly.graph_objects as go
 from models import Gasto, IngresoExtra
-from database import (crear_tabla, insertar_gasto, insertar_ingreso_extra, insertar_distribucion, insertar_historial_inversion, CATEGORIAS)
+from database import (crear_tabla, insertar_gasto, insertar_ingreso_extra, insertar_distribucion, insertar_historial_inversion, OBJETIVOS)
 
 from analysis import (resumen_por_categoria,
                       resumen_mensual,
@@ -37,6 +37,9 @@ from analysis import (resumen_por_categoria,
                       obtener_progreso_objetivos,
                       obtener_resumen_inversiones
                         )
+
+
+CATEGORIAS = [objetivo[0] for objetivo in OBJETIVOS]
 
 #Config pag
 #_
