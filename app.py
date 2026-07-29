@@ -4,12 +4,7 @@ import calendar
 import pandas as pd
 from datetime import date
 from models import Gasto, IngresoExtra
-from database import (crear_tabla,
-                      insertar_gasto,
-                      insertar_ingreso_extra,
-                      insertar_distribucion,
-                      insertar_historial_inversion
-                        )
+from database import (crear_tabla, insertar_gasto, insertar_ingreso_extra, insertar_distribucion, insertar_historial_inversion)
 
 from analysis import (resumen_por_categoria,
                       resumen_mensual,
