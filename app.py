@@ -4,7 +4,13 @@ import calendar
 import pandas as pd
 from datetime import date
 from models import Gasto, IngresoExtra
-from database import crear_tabla, insertar_gasto, insertar_ingreso_extra, insertar_distribucion
+from database import (crear_tabla,
+                      insertar_gasto,
+                      insertar_ingreso_extra,
+                      insertar_distribucion,
+                      insertar_historial_inversion
+                        )
+
 from analysis import (resumen_por_categoria,
                       resumen_mensual,
                       evolucion_mensual,
@@ -19,8 +25,22 @@ from analysis import (resumen_por_categoria,
                       obtener_sueldo_,
                       obtener_ingresos_extra_,
                       obtener_gastos_mes_,
-                      obtener_ahorro_mes_
-                      )
+                      obtener_ahorro_mes_,
+                      obtener_objetivos,
+                      obtener_historial_anterior,
+                      calcular_liquidez,
+                      obtener_ultima_fecha_historial,
+                      obtener_primer_aporte,
+                      obtener_capitales,
+                      actualizar_historial_inversiones,
+                      actualizar_historial_si_es_necesario,
+                      obtener_estado_actual,
+                      obtener_historial,
+                      obtener_evolucion_patrimonio,
+                      obtener_composicion_patrimonio,
+                      obtener_progreso_objetivos,
+                      obtener_resumen_inversiones
+                        )
 
 #Config pag
 #_
@@ -54,7 +74,7 @@ st.title("Money Saver")
 
 menu = st.sidebar.selectbox(
     "Seleccione una opción",
-    ["Agregar gasto", "Resumen mensual", "Análisis", "Exportar a Excel", "Ingresos", "Distribución ahorro"]
+    ["Agregar gasto", "Resumen mensual", "Análisis", "Exportar a Excel", "Ingresos", "Distribución ahorro", "Inversiones"]
 )
 
 # --------------------------
@@ -542,3 +562,199 @@ elif menu == "Ingresos":
             insertar_ingreso_extra(ingreso)
             
             st.success("Ingreso guardado correctamente")
+
+# --------------------------
+# Inversiones
+# --------------------------
+
+elif menu == "Inversiones":
+
+    st.header("Inversiones")
+
+    fecha_actualizacion, actualizado = actualizar_historial_si_es_necesario()
+
+    if actualizado:
+
+        st.success(
+            f"Historial actualizado hasta {fecha_actualizacion.strftime('%d/%m/%Y')}"
+        )
+
+    else:
+
+        st.info(
+            f"Historial actualizado hasta {fecha_actualizacion.strftime('%d/%m/%Y')}"
+        )
+
+    estado = obtener_estado_actual()
+
+    patrimonio = estado["valor_total"].sum()
+
+    liquidez = estado.loc[
+        estado["tipo"] == "Liquidez",
+        "valor_total"
+    ].sum()
+
+    largo_plazo = estado.loc[
+        estado["tipo"] == "Inversion",
+        "valor_total"
+    ].sum()
+
+    rentabilidad = estado["rentabilidad"].sum()
+
+    #Tarjetas con datos
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.metric(
+        "Patrimonio",
+        f"${patrimonio:,.0f}"
+    )
+
+    col2.metric(
+        "Liquidez",
+        f"${liquidez:,.0f}"
+    )
+
+    col3.metric(
+        "Largo plazo",
+        f"${largo_plazo:,.0f}"
+    )
+
+    col4.metric(
+        "Rentabilidad",
+        f"${rentabilidad:,.0f}"
+    )
+
+    st.subheader("📈 Evolución del patrimonio")
+
+    df = obtener_evolucion_patrimonio()
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=df["fecha"],
+            y=df["capital"],
+            name="Capital aportado",
+            line=dict(width=3)
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=df["fecha"],
+            y=df["valor_total"],
+            name="Patrimonio",
+            line=dict(width=3)
+        )
+    )
+
+    fig.update_layout(
+
+        hovermode="x unified",
+
+        xaxis_title="Fecha",
+
+        yaxis_title="CLP",
+
+        legend=dict(
+            orientation="h",
+            y=1.05,
+            x=0
+        )
+
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
+
+    st.subheader("📊 Composición del patrimonio")
+
+    df = obtener_composicion_patrimonio()
+
+    fig = go.Figure()
+
+    for categoria in df.columns[1:]:
+
+        fig.add_trace(
+
+            go.Scatter(
+
+                x=df["fecha"],
+
+                y=df[categoria],
+
+                name=categoria,
+
+                stackgroup="one"
+
+            )
+
+        )
+
+    fig.update_layout(
+
+        hovermode="x unified",
+
+        xaxis_title="Fecha",
+
+        yaxis_title="CLP"
+
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
+
+    st.subheader("🎯 Objetivos de ahorro")
+
+    objetivos = obtener_progreso_objetivos()
+
+    for _, fila in objetivos.iterrows():
+
+        if fila["tipo"] != "Liquidez":
+            continue
+
+        st.write(f"**{fila['categoria']}**")
+
+        st.progress(
+            min(float(fila["progreso"]), 1.0)
+        )
+
+        col1, col2 = st.columns(2)
+
+        col1.write(
+            f"${fila['valor_total']:,.0f}"
+        )
+
+        col2.write(
+            f"Meta: ${fila['meta']:,.0f}"
+        )
+
+        st.caption(
+            f"{fila['progreso']*100:.1f}% completado"
+        )
+
+    st.subheader("📋 Detalle de inversiones")
+
+    tabla = obtener_resumen_inversiones()
+
+    tabla = tabla.rename(
+        columns={
+            "categoria": "Categoría",
+            "tipo": "Tipo",
+            "capital": "Capital aportado",
+            "rentabilidad": "Rentabilidad",
+            "valor_total": "Patrimonio",
+            "meta": "Meta",
+            "progreso": "Progreso (%)"
+        }
+    )
+
+    st.dataframe(
+        tabla,
+        use_container_width=True,
+        hide_index=True
+    )

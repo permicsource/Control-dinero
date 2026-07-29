@@ -465,25 +465,6 @@ def obtener_ultima_fecha_historial():
     return df.loc[0, "ultima_fecha"]
 
 
-def obtener_primer_periodo_distribucion():
-
-    conn = conectar()
-
-    query = """
-        SELECT MIN(periodo) AS primer_periodo
-        FROM distribucion_ahorro
-    """
-
-    df = pd.read_sql(query, conn)
-
-    conn.close()
-
-    if pd.isna(df.loc[0, "primer_periodo"]):
-        return None
-
-    return df.loc[0, "primer_periodo"]
-
-
 # Lee distribucion_ahorro, y devuelve la fecha donde comenzó la inversión
 #si no hay nada devuelve None
 
@@ -591,3 +572,176 @@ def actualizar_historial_inversiones():
             )
 
         fecha_actualizar += timedelta(days=1)
+
+#
+#
+#
+#
+#
+#
+#
+#
+#
+# Comprueba que las inversiones y sus intereses esten actualizados, de no ser asi 
+#actualiza los dias faltantes, la idea es que se corra autimaticamnete al abrir el módulo de inversiones.
+
+
+
+def actualizar_historial_si_es_necesario():
+
+    ultima_fecha = obtener_ultima_fecha_historial()
+
+    if ultima_fecha == date.today():
+
+        return ultima_fecha, False
+
+    actualizar_historial_inversiones()
+
+    return date.today(), True
+
+
+# Entrega un df con los datos de la ultima fotografía
+#Se usa para mostrar y graficar en la interfaz
+
+
+def obtener_estado_actual():
+
+    conn = conectar()
+
+    query = """
+        SELECT
+            h.categoria,
+            o.tipo,
+            o.meta,
+            h.capital,
+            h.rentabilidad,
+            h.valor_total
+        FROM historial_inversiones h
+        INNER JOIN objetivos o
+            ON h.categoria = o.categoria
+        WHERE h.fecha = (
+            SELECT MAX(fecha)
+            FROM historial_inversiones
+        )
+        ORDER BY o.tipo, h.categoria
+    """
+
+    df = pd.read_sql(query, conn)
+
+    conn.close()
+
+    return df
+
+# Funcion para obtener historial a usar en los graficos
+
+def obtener_historial(tipo=None, categoria=None):
+
+    conn = conectar()
+
+    query = """
+        SELECT
+            h.fecha,
+            h.categoria,
+            o.tipo,
+            h.capital,
+            h.rentabilidad,
+            h.valor_total
+        FROM historial_inversiones h
+        INNER JOIN objetivos o
+            ON h.categoria = o.categoria
+    """
+
+    params = []
+
+    filtros = []
+
+    if tipo is not None:
+
+        filtros.append("o.tipo = %s")
+        params.append(tipo)
+
+    if categoria is not None:
+
+        filtros.append("h.categoria = %s")
+        params.append(categoria)
+
+    if filtros:
+
+        query += " WHERE " + " AND ".join(filtros)
+
+    query += """
+        ORDER BY
+            h.fecha,
+            h.categoria
+    """
+
+    df = pd.read_sql(
+        query,
+        conn,
+        params=params
+    )
+
+    conn.close()
+
+    return df
+
+#Para hacer el grafico de capital vs patrimonio (Evolucion del patrimonio)
+#grafico de dos lineas
+
+
+def obtener_evolucion_patrimonio():
+
+    df = obtener_historial()
+
+    df = (
+        df.groupby("fecha")[["capital", "rentabilidad", "valor_total"]]
+        .sum()
+        .reset_index()
+    )
+
+    return df
+
+# Para graficar el stacked area chart
+
+def obtener_composicion_patrimonio():
+
+    df = obtener_historial()
+
+    df = df.pivot_table(
+
+        index="fecha",
+
+        columns="categoria",
+
+        values="valor_total",
+
+        aggfunc="sum",
+
+        fill_value=0
+
+    )
+
+    return df.reset_index()
+
+#Para obtener el progreso de los objetivos y graficar las barras
+
+def obtener_progreso_objetivos():
+
+    df = obtener_estado_actual()
+
+    df["progreso"] = df["valor_total"] / df["meta"]
+
+    return df
+
+#Para obtener tabla resumen de las inversiones
+
+def obtener_resumen_inversiones():
+
+    df = obtener_estado_actual()
+
+    df["progreso"] = (
+        df["valor_total"] /
+        df["meta"]
+    ) * 100
+
+    return df
