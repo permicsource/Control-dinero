@@ -88,8 +88,8 @@ if menu == "Agregar gasto":
         fecha = st.date_input("Fecha", value=date.today())
         categoria = categoria = st.selectbox(
             "Categoría",
-            ["Comida", "Bencina", "Ropa", "Arriendo", "Salud", "Deporte", "Educación", "Inversión", "Otros", "Transporte", "Ocio",
-             "TAG", "Comer afuera", "Suscripciones"]
+            ["Comida", "Bencina", "Ropa", "Arriendo", "Salud", "Deporte", "Educación", "Transporte", "Ocio",
+             "TAG", "Comer afuera", "Suscripciones", "Regalos", "Auto", "Otros"]
         )
         descripcion = st.text_input("Descripción")
         monto = st.number_input("Monto", min_value=0, step=100, format="%d")
